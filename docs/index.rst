@@ -11,20 +11,21 @@ The `esm-tools` aim at simplifing the construction of experiments with Earth
 System Models. Presented here is a unified framework which will allow
 scientists to:
 
-   1. Download numerical **Earth System Models** code, which may represent
-      physical processes of the atmosphere, ocean, cryosphere, solid earth,
-      or other components of Earth's physical environment
-   2. **Compile** these models on a variety of supercomputing platforms
-   3. Design **self-documenting experiments** which these models.
-   4. Perform **reproducable analysis** on the results of such experiments
-   5. Archive the utilized data, enabling the scientist to subconsciously
-      comply with **good scientific practice**
-   6. Get *out of the way*, so you can do science and not worry about:
-        a. Batch Systems
-        b. Compiler Optimization
-        c. Documenting the analysis
-        d. Archiving your results
-        e. Sharing the analysis in an easy, reproducable manner
+1. Download numerical **Earth System Models** code, which may represent
+   physical processes of the atmosphere, ocean, cryosphere, solid earth,
+   or other components of Earth's physical environment
+2. **Compile** these models on a variety of supercomputing platforms
+3. Design **self-documenting experiments** which these models.
+4. Perform **reproducable analysis** on the results of such experiments
+5. Archive the utilized data, enabling the scientist to subconsciously
+   comply with **good scientific practice**
+6. Get *out of the way*, so you can do science and not worry about:
+   
+   a. Batch Systems
+   b. Compiler Optimization
+   c. Documenting the analysis
+   d. Archiving your results
+   e. Sharing the analysis in an easy, reproducable manner
 
 To accomplish this goal, the ESM Team has developed a toolkit which allows all
 of the above six steps to be accomplished with relatively little overhead for
@@ -33,7 +34,8 @@ the user. It's written in ``python``.
 You should be able to minimize days like this when using the tools (at least partially):
 
 .. image:: https://imgs.xkcd.com/comics/computer_problems.png
-
+   :align: center
+   
 ----
 
 Installation Instructions
