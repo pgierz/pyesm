@@ -2,9 +2,13 @@
 
 ``ESM Tools`` Documentation
 ===========================
-.. image:: https://readthedocs.org/projects/pyesm/badge/?version=latest
-   :target: https://pyesm.readthedocs.io/en/latest/?badge=latest
-         :alt: Documentation Status
+|docs| |tests|
+
+.. |docs| image:: https://readthedocs.org/projects/pyesm/badge/?version=latest 
+   :target: https://pyesm.readthedocs.io/en/latest/?badge=latest 
+
+.. |tests| image:: https://travis-ci.org/pgierz/pyesm.svg?branch=master 
+    :target: https://travis-ci.org/pgierz/pyesm 
 ----
 
 The `esm-tools` aim at simplifing the construction of experiments with Earth
