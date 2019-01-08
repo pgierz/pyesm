@@ -3,7 +3,7 @@
 ``ESM Tools`` Documentation
 ===========================
 .. image:: https://readthedocs.org/projects/pyesm/badge/?version=latest
-:target: https://pyesm.readthedocs.io/en/latest/?badge=latest
+   :target: https://pyesm.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status
 ----
 
