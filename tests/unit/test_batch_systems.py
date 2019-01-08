@@ -1,5 +1,7 @@
 import logging
+import mock
 import os
+import socket
 import subprocess
 import sys
 import unittest
@@ -20,7 +22,8 @@ if display_logging:
 class test_BatchSystem(unittest.TestCase):
     def test_BatchSystem_init(self):
         """ Check if a BatchSystem object can be correctly initialized """
-        test_batch = BatchSystem()
+        with mock.patch("socket.gethostname", return_value="ollie"):
+            test_batch = BatchSystem()
 
     def test_BatchSystem_bad_init(self):
         """ Check if errors are raised at incorrect initialization """
@@ -28,7 +31,8 @@ class test_BatchSystem(unittest.TestCase):
 
     def test_BatchSystem_not_implemented(self):
         """ Check if errors are raised at not implemented methods for the base class """
-        test_batch = BatchSystem(host=Host())
+        with mock.patch("socket.gethostname", return_value="ollie"):
+            test_batch = BatchSystem(host=Host())
         for method in ["check_full_queue", "check_my_queue", "construct_submitter_flags"]:
             this_method = getattr(test_batch, method)
             self.assertRaises(NotImplementedError, this_method)
@@ -36,7 +40,8 @@ class test_BatchSystem(unittest.TestCase):
 class test_Slurm(unittest.TestCase):
     def test_Slurm_init(self):
         """ Check if Slurm can be correctly initialized """
-        test_batch = Slurm(host=Host(), account="pgierz")
+        with mock.patch("socket.gethostname", return_value="ollie"):
+            test_batch = Slurm(host=Host(), account="pgierz")
     
     def test_Slurm_check_queue(self):
         """ Checks if the staticmethods for queue checking return strings """
@@ -50,7 +55,8 @@ class test_Slurm(unittest.TestCase):
 
     def test_Slurm_submitter_flags(self):
         """ Checks if submitter flags are correctly assembled """
-        test_batch = Slurm(host=Host(), account="pgierz")
+        with mock.patch("socket.gethostname", return_value="ollie"):
+            test_batch = Slurm(host=Host(), account="pgierz")
         submitter_flag_args = {
                             "job_flag": "compute",
                             "job_time": "03:00:00",
@@ -67,7 +73,8 @@ class test_Slurm(unittest.TestCase):
 
     def test_Slurm_construct_submit_command(self):
         """ Checks if submit command is correct assembled """
-        test_batch = Slurm(host=Host(), account="pgierz")
+        with mock.patch("socket.gethostname", return_value="ollie"):
+            test_batch = Slurm(host=Host(), account="pgierz")
         submitter_flag_args = {
                             "job_flag": "compute",
                             "job_time": "03:00:00",
@@ -83,7 +90,8 @@ class test_Slurm(unittest.TestCase):
 
     def test_Slurm_construct_execution_command(self):
         """ Checks if execution command is correct assembled """
-        test_batch = Slurm(host=Host(), account="pgierz")
+        with mock.patch("socket.gethostname", return_value="ollie"):
+            test_batch = Slurm(host=Host(), account="pgierz")
         exec_list = ["echam6", "fesom"]
         exec_tasks = [240, 480]
         total_tasks = 720

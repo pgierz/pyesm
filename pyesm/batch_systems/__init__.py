@@ -90,7 +90,7 @@ class BatchSystem(object):
            assert isinstance(host, Host)
            self._host = host
        except AssertionError:
-           raise TypeError("You must give a host object of type %s", type(Host))
+           raise TypeError("You gave %s. You must give a host object of type %s", host, Host)
 
     def check_full_queue(self):
         """ Checks the computing queue for this BatchSystem including **all** users """

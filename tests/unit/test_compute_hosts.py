@@ -1,3 +1,5 @@
+import mock
+import socket
 import unittest
 
 from pyesm.compute_hosts import Host
@@ -6,8 +8,8 @@ from pyesm.compute_hosts import Host
 class test_Host(unittest.TestCase):
     def test_Host_has_all_attrs(self):
         """ Check if a host can be correctly initialized from the JSON file """
-        # TODO: this needs a mock
-        test_host = Host()
+        with mock.patch("socket.gethostname", return_value="ollie1"):
+            test_host = Host()
         for attr in ["hostnames", "nodetypes", "batch_system",
                      "operating_system", "partitions", "cores", "cpus"]:
             testBool = hasattr(test_host, attr)
@@ -15,5 +17,4 @@ class test_Host(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    stream_handler.stream = sys.stdout
     unittest.main()
