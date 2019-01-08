@@ -4,7 +4,9 @@ Various tests for classes in helpers
 import os
 import unittest
 
-from pyesm.helpers import ComponentFile, FileDict
+import f90nml
+
+from pyesm.helpers import ComponentFile, ComponentNamelist, FileDict
 
 
 class TestComponentFile(unittest.TestCase):
@@ -36,6 +38,15 @@ class TestComponentFile(unittest.TestCase):
                           ComponentFile,
                           "./", "./", "banana")
 
+    def test_ComponentFile_digest(self):
+        """ Tests if digest works for ComponentFile """
+        with open("foo", "w") as f:
+            f.write("a test file")
+        test_comp_file = ComponentFile(src="foo", dest="/tmp")
+        test_comp_file.digest()
+        for f in "foo", "/tmp/foo":
+            os.remove(f)
+
     def test_ComponentFile_str(self):
         """ComponentFile __str__ works and is useful"""
         copy_file = ComponentFile(src="/foo/bar", dest="/foo/lar", copy_method="copy")
@@ -43,6 +54,74 @@ class TestComponentFile(unittest.TestCase):
         link_file = ComponentFile(src="/foo/bar", dest="/foo/lar", copy_method="link")
         self.assertEqual(link_file.__str__(), "/foo/bar -- linked --> /foo/lar")
 
+class TestComponentNamelist(unittest.TestCase):
+    def setUp(self):
+        nml = {
+            'config_nml': {
+                    'input': 'wind.nc',
+                    'steps': 864,
+                    'layout': [8, 16],
+                    'visc': 0.0001,
+                    'use_biharmonic': False
+            }
+        }
+        with open("sample.nml", "w") as nml_file:
+            nml = f90nml.namelist.Namelist(nml)
+            nml.write(nml_file)
+
+    def test_ComponentNamelist_new(self):
+        """ Tests if a ComponentNamelist can be correctly initialized """
+        example_nml = ComponentNamelist(src="sample.nml")
+        for attr in "src", "dest", "copy_method", "nml":
+            assert hasattr(example_nml, attr)
+
+    def test_ComponentNamelist_extend_chapter(self):
+        """ Tests if a new entry to an existing chapter can be added """
+        example_nml = ComponentNamelist(src="sample.nml")
+        example_nml.nml["config_nml"]["forcing_file"] = "something"
+        self.assertIn("forcing_file", example_nml.nml["config_nml"])
+
+    def test_ComponentNamelist_reduce_chapter(self):
+        """Tests if an entry can be removed from an existing chapter """
+        example_nml = ComponentNamelist(src="sample.nml")
+        del example_nml.nml["config_nml"]["steps"]
+        self.assertNotIn("steps", example_nml.nml["config_nml"])
+
+    def test_ComponentNamelist_change_entry(self):
+        example_nml = ComponentNamelist(src="sample.nml")
+        example_nml.nml["config_nml"]["input"] = "waves.nc"
+        self.assertEqual("waves.nc", example_nml.nml["config_nml"]["input"])
+        
+    def test_ComponentNamelist_delete_chapter(self):
+        """Tests if an entire chapter can be removed"""
+        example_nml = ComponentNamelist(src="sample.nml")
+        del example_nml.nml["config_nml"]
+
+    def test_ComponentNamelist_new_chapter(self):
+        """ Tests if an new chapter can be added to the namelist """
+        new_chapter = {
+                "test_chapter": {
+                    "output": "a_file.nc",
+                    "an_int": 1234,
+                    "a_list": [1,2,3,4],
+                    "a_float": 42.000000,
+                    "a_bool": True
+                    }
+                }
+        extend_nml = f90nml.namelist.Namelist(new_chapter)
+        example_nml = ComponentNamelist(src="sample.nml")
+        example_nml.nml.update(extend_nml)
+        self.assertIn("config_nml", example_nml.nml)
+        self.assertIn("test_chapter", example_nml.nml)
+
+    def test_ComponentNamelist_digest(self):
+        """ Tests if the digest of a namelist works correctly """
+        example_nml = ComponentNamelist(src="sample.nml", dest="/tmp/")
+        example_nml.digest()
+        os.remove("/tmp/sample.nml")
+
+    def tearDown(self):
+        os.remove("sample.nml")
 
 class TestFileDict(unittest.TestCase):
     """Various tests for FileDict"""

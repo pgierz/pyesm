@@ -6,6 +6,8 @@ import logging
 import shutil
 import os
 
+import f90nml
+
 class SimElement(object):
     """
     A meta-object to hold both Component and SetUp
@@ -246,6 +248,41 @@ class ComponentFile(object):
         return "%s -- %s --> %s" % (self.src, verb, self.dest)
 
     __repr__ = __str__
+
+
+class ComponentNamelist(ComponentFile):
+    """ A class to hold namelists, giving access to chapters and entries via a dictionary 
+
+    This extension of ComponentFile gives the attribute ``nml``, which allows you to modify the namelist files.
+    """
+    def __init__(self, src, dest=None, copy_method="copy"):
+        """
+        Initializes a ComponentNamelist
+
+        see :class:`pyesm.helpers.ComponentFile` arguments
+
+        Attributes
+        ----------
+        nml: f90nml.namelist.Namelist
+            A Fortran namelist representation in python
+
+
+        see :class:`pyesm.helpers.ComponentFile` for other attributes
+        """
+        super(ComponentNamelist, self).__init__(src, dest, copy_method)
+
+        parser = f90nml.Parser()
+        self.nml = parser.read(self.src)
+
+    def digest(self):
+        """ Digest a namelist: write a new namelist object to the dest """
+        logging.debug("%s.digest() has been called:", __name__)
+        if os.path.isdir(self.dest):
+            self.dest += "/"+os.path.basename(self.src)
+        logging.debug("%s".ljust(20), self)
+        self.nml.write(self.dest, force=True)
+        logging.debug("...done!")
+
 
 class TransformedDict(collections.MutableMapping):
     """A dictionary that only accepts ComponentFile as values for it's keys"""
