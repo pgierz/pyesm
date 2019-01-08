@@ -1,0 +1,18 @@
+{
+        "input": {
+                 "input1": ["tests/test_component_minitree/input1", "initial_conditions"],
+                 "input2": ["tests/test_component_minitree/input2", "/this/is/the/second/testfile/boundary_conditions"]
+                },
+        "forcing": {
+                 "forcing1": ["tests/test_component_minitree/forcing1", "/some/silly/path/forcing1"]
+                },
+        "restart": {
+                 "restart1": {"src": "tests/test_component_minitree/restart1", "copy_method": "link"}
+        },
+        "outdata": {
+                
+                 "output1": ["output1", "@EXPID@_@NAME@_output1_@DATE@.nc"],
+                 "output2": ["output2", "@EXPID@_lala.nc"],
+                 "output3": ["output3", "@NAME@_something.nc"]
+        }
+}

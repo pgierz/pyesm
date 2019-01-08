@@ -1,0 +1,24 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+coverage = "*"
+green = "*"
+sphinx = "*"
+pycodestyle = "*"
+autopep8 = "*"
+coverage-badge = "*"
+ipython = "*"
+jinja2 = "*"
+
+[packages]
+pendulum = "*"
+tqdm = "*"
+gitpython = "*"
+emoji = "*"
+f90nml = "*"
+
+[requires]
+python_version = "2.7"

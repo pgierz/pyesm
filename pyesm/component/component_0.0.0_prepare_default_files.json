@@ -1,0 +1,12 @@
+{
+        "input": {
+                 "input_file_1": ["/this/is/the/first/testfile/file1_source", "/this/is/the/first/testfile/file1_dest"],
+                 "input_file_2": ["/this/is/the/second/testfile/file2_source", "/this/is/the/second/testfile/file2_dest"]
+                },
+        "forcing": {
+                 "forcing_example": ["/this/is/a/forcing/force_source"]
+                },
+        "restart": {
+                 "restart_example": {"src": "/an/example/restart_file", "copy_method": "link"}
+        }
+}

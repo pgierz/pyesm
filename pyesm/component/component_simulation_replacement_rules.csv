@@ -1,0 +1,6 @@
+string; replacement
+@EXPID@; self.expid
+@NAME@; self.Name
+@DATE@; self.calendar 
+@LRES@; self.LateralResolution
+@VRES@; self.VerticalResolution

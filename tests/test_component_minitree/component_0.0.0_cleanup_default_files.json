@@ -1,0 +1,15 @@
+{
+        "outdata": {
+                 "output1": ["output1", "@EXPID@_@NAME@_output1_@DATE@.nc"],
+                 "output2": ["output2", "@EXPID@_lala.nc"],
+                 "output3": ["output3", "@NAME@_something.nc"]
+                },
+        "forcing": {
+                 "forcing1": ["tests/test_component_minitree/forcing1", "/some/silly/path/forcing1"]
+                },
+        "restart": {
+                 "restart1": {"src": "tests/test_component_minitree/restart_output",
+                              "dest": "@EXPID@_@NAME@_restart1_@DATE@",
+                              "copy_method": "link"}
+        }
+}

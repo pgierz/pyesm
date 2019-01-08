@@ -1,0 +1,11 @@
+{
+        "hostnames": {"login": "ollie[01]",
+                      "compute": "prod-[0-9]{3}",
+                      "mini": "mini"},
+        "nodetypes": ["login", "compute", "fat", "mini"],
+        "batch_system": "slurm",
+        "operating_system": {"linux": "centos"},
+        "partitions": {"compute": "mpp", "post": "smp"},
+        "cores": {"compute": 36},
+        "cpus": {"compute": 2}
+}
