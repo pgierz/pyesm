@@ -12,7 +12,7 @@ from pyesm.helpers import ComponentFile, FileDict
 
 from tests import set_env
 
-display_logging = True
+display_logging = False
 
 if display_logging:
     logger = logging.getLogger()

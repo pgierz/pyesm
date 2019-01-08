@@ -9,7 +9,7 @@ from pyesm.batch_systems import BatchSystem
 from pyesm.batch_systems.slurm import Slurm
 
 
-display_logging = True
+display_logging = False
 
 if display_logging:
     logger = logging.getLogger()

@@ -6,7 +6,7 @@ import logging
 
 from pyesm.component.component_simulation import ComponentCompute
 
-display_logging = True
+display_logging = False
 
 if display_logging:
     logger = logging.getLogger()
