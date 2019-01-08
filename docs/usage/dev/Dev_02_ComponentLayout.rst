@@ -5,13 +5,13 @@ Dev: Component Layout
 #####################
 
 To start implementing a new component, we can use the provided cookiecutter.
-There's a hidden directory in the project root, ``${PYESM}/.dev_tools``. It
+There's a  directory in the project root, ``${PYESM}/dev_tools``. It
 contains a few tools to help get set up. Assuming you are currently in the
 project root, you can start like this:
 
 .. code-block:: shell
 
-        $ ./.dev_tools/component_cookiecutter \
+        $ ./dev_tools/component_cookiecutter \
                 ${COMP_NAME} \
                 ${COMP_VERSION} \
                 ${COMP_TYPE}
@@ -20,7 +20,7 @@ For our example, we will do the following:
 
 .. code-block:: shell
 
-        $ ./.dev_tools/component_cookiecutter random_clouds 0.1 Generic
+        $ ./dev_tools/component_cookiecutter random_clouds 0.1 Generic
 
 The file tree you have just created should look like this:
 

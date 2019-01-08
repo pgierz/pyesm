@@ -86,34 +86,36 @@ actual name, type, and version. Going through what needs to be adapted:
           from ``Component``. Notice that we use Capital for each seperate
           word, and underscores are replaced by direct word connections. 
         + ``YourComponentCompute`` should be the compute class, and **must**
-          inherit from:
-                #. ``YourComponent``
-                #. ``ComponentCompute``
-          **in that order**
+          inherit from the following **in this order**:
 
-That's it! All the other magic occurs in ``helpers.SimElement`` and
-``component.Component``, so you can read the full documentation for those
-objects if you are curious. Next we describe some of the methods and attributes
-that ``RandomClouds`` inherited, and how you might want to use them
+          #. ``YourComponent``
+          #. ``ComponentCompute``
+
+That's it! All the other magic occurs in :class:`pyesm.helpers.SimElement` and
+:class:`pyesm.component.Component`, so you can read the full documentation for
+those objects if you are curious. Next we describe some of the methods and
+attributes that ``RandomClouds`` inherited, and how you might want to use them.
 
 When initializing a ``RandomClouds`` object, you will see that you
 automatically get *attributes* representing the experiment id, ``expid``. This
 can be passed in to the construction call as an argument ``expid``.
 Furthermore, you get attributes describing the various directories that you
-might need to access: ``_parent_dir``, and one each for ``config``,
+might need to access: :attr:`_parent_dir
+<pyesm.helpers.SimElement._parent_dir>`, and one each for ``config``,
 ``forcing``, ``input``, ``log``, ``mon``, ``outdata``, ``restart`` as, e.g.
 ``_outdata_dir``. There is also a method which allows for the generation of
-directories within the experiment tree, ``_register_directory(dir_name,
-use_Name=True)``. If given the argument ``use_Name=True`` (this is the default
-value), a subdirectory is made with the name of the component as stored under
-the attribute ``self.Name``, with ``use_Name=False``, you only get the
-``dir_name``. Additionally, this method registers the directory to the object
-in a similar way as e.g. ``_outdata_dir``.
+directories within the experiment tree, :meth:`_register_directory(dir_name,
+use_Name=True) <pyesm.helpers.SimElement._register_directory>`. If given the
+argument ``use_Name=True`` (this is the default value), a subdirectory is made
+with the name of the component as stored under the attribute ``self.Name``,
+with ``use_Name=False``, you only get the ``dir_name``. Additionally, this
+method registers the directory to the object in a similar way as e.g.
+``_outdata_dir``.
 
 In addition to the experiment id, file directories, and resolution attributes,
 perhaps the most-used attribute of your new component will be
-``RandomClouds.files``. If you instantiate a new object of your
-``RandomClouds``, you can do the following:
+:attr:`RandomClouds.files <pyesm.component.Component.files>`. If you
+instantiate a new object of your ``RandomClouds``, you can do the following:
 
 .. code-block:: python
 
@@ -129,32 +131,40 @@ perhaps the most-used attribute of your new component will be
     'restart': <helpers.FileDict at 0x101b3a110>}
 
 You can see how you have a dictionary, where each key represents one of the
-main filetypes (These can also be listed out over the ``_filetypes`` attribute)
+main filetypes (These can also be listed out over the :attr:`_filetypes
+<pyesm.helpers.SimElement._filetype>` attribute)
 
-``ComponentFile`` and ``FileDict``
-==================================
+:class:`ComponentFile <pyesm.helpers.ComponentFile>` and :class:`FileDict <pyesm.helpers.FileDict>`
+===================================================================================================
 
 Notice that the values of the ``my_random_clouds.files`` dictionary have the
-type ``helpers.FileDict``. ``FileDict`` are specialized dictionaries which have
-two important differences from regular dictionaries:
+type :class:`pyesm.helpers.FileDict`. :class:`FileDict
+<pyesm.helpers.FileDict>` are specialized dictionaries which have two important
+differences from regular dictionaries:
 
-#. They **only** accept values of type ``ComponentFile``
-#. They have a special ``digest`` method.
+#. They **only** accept values of type :class:`ComponentFile <pyesm.helpers.ComponentFile>`
+#. They have a special :meth:`digest <pyesm.helpers.FileDict.digest>` method.
 
-The ``ComponentFile`` object has three attributes, a ``src`` (where a file
-should be taken from), a ``dest`` (where the file should go) and a
-``copy_method``. When initializing a ``ComponentFile``, all three of these
-arguments are strings, and you can select either ``"link"`` or ``"copy"`` as
-``copy_method``. The default is ``"copy"``. This is then translated to an
-appropriate system call. ``ComponentFile`` objects, like the ``FileDict`` also
-have a ``digest`` method, which uses the copy method to manipulate the file
-system and also produce some logging output to keep track of what is happening.
-The ``digest`` method of the ``FileDict`` takes all of the ``ComponentFile``
-objects and calls the ``digest`` method for each of them, manipulating all the
-files in one go. The keys of the ``FileDict`` allow you to assign
-human-understandable names to each of the files, therefore making looking them
-up and changing them easier. You can see how it might be easy to allocate files
-into this system, e.g.
+The :class:`pyesm.helpers.ComponentFile` object has three attributes, a
+:attr:`src <pyesm.helpers.ComponentFile.src>` (where a file should be taken
+from), a :attr:`dest <pyesm.helpers.ComponentFile.dest>` (where the file should
+go) and a :attr:`copy_method <pyesm.helpers.ComponentFile.copy_method>`. When
+initializing a :class:`ComponentFile <pyesm.helpers.ComponentFile>` all three
+of these arguments are strings, and you can select either ``"link"`` or
+``"copy"`` as ``copy_method``. The default is ``"copy"``. This is then
+translated to an appropriate system call.  :class:`pyesm.helpers.ComponentFile`
+objects, like the :class:`FileDict <pyesm.helpers.FileDict>` also have a
+:meth:`digest <pyesm.helpers.ComponentFile.digest>` method, which uses the copy
+method to manipulate the file system and also produce some logging output to
+keep track of what is happening.  The :meth:`digest <pyesm.helpers.FileDict.digest>`
+method of the :class:`FileDict <pyesm.helpers.FileDict>` takes all of the
+:class:`ComponentFile <pyesm.helpers.ComponentFile>` objects and calls the
+:meth:`digest <pyesm.helpers.ComponentFile.digest>` method for each of them,
+manipulating all the files in one go. The keys of the :class:`FileDict
+<pyesm.helpers.FileDict>` allow you to assign human-understandable
+names to each of the files, therefore making looking them up and changing them
+easier.  You can see how it might be easy to allocate files into this system,
+e.g.
 
 .. code-block:: python
 
@@ -170,13 +180,14 @@ into this system, e.g.
 We will show an even easier way to do this for large numbers of files in the
 next part.
 
-``_call_steps``
-===============
+:meth:`_call_steps <pyesm.helpers.SimElement._call_steps>`
+============================================================
 
 The last interesting method to discuss on the basic ``RandomClouds`` class is
-``_call_steps``. This allows you to call a series of work steps to perform,
-with hooks for user-defined functions before and after each step. When using
-``_call_steps``, two arguments must be given:
+:meth:`_call_steps <pyesm.helpers.SimElement._call_steps>`. This allows you
+to call a series of work steps to perform, with hooks for user-defined
+functions before and after each step. When using :meth:`_call_steps
+<pyesm.helpers.SimElement._call_steps>`, two arguments must be given:
 
 #. a ``phase`` (as a ``str``), which is common for all steps.
 #. a ``steps`` ``list``, which names each of the steps in turn.
@@ -224,8 +235,8 @@ the method name) and after (with ``USER`` in the method name) specific methods
 to gain additional control. *Note* that this must happen before the object has
 been initialized!
 
-The ``ComponentCompute`` Class and ``component_simulation.py``
-==============================================================
+The :class:`ComponentCompute <pyesm.component.ComponentCompute>` Class and ``component_simulation.py``
+======================================================================================================
 
 Next, we will look at how to control the preparation, execution, and cleanup of
 actual simulations. The functionally for these tasks are contained in
@@ -260,14 +271,18 @@ inherited. In principle, we only need to specify the executable name, the
 command used to start the executable (with applicable flags), and the number of
 CPUs to use.
 
-While there are several inherited methods from ``ComponentCompute``, we will
-currently only introduce one, and save the rest for later
+While there are several inherited methods from :class:`ComponentCompute
+<pyesm.component.ComponentCompute>`, we will currently only introduce one, and
+save the rest for later
 
-The method ``_read_filetables`` allows you to quickly populate the ``FileDict``
-objects within the ``ComponentCompute.files`` dictionary. This occurs by
-reading a file table, where each of the entires is a dictionary, which in turn
-contains dictionaries corresponding to valid ``ComponentFile`` arguments. A
-complete example of this will be shown in the next section.
+The method :meth:`_read_filetables
+<pyesm.compute.ComponentCompute._read_filetables>` allows you to quickly
+populate the :class:`FileDict <pyesm.helpers.FileDict>` objects within the
+:attr:`ComponentCompute.files <pyesm.component.files>` dictionary. This occurs
+by reading a file table, where each of the entires is a dictionary, which in
+turn contains dictionaries corresponding to valid :class:`ComponentFile
+<pyesm.helpers.ComponentFile>` arguments. A complete example of this will be
+shown in the next section.
 
 ----
 

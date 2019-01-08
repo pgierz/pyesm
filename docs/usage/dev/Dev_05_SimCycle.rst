@@ -21,7 +21,8 @@ We briefly describe what happens during each of these phases.
 The Prepare Phase
 -----------------
 
-During the preperation phase, the following steps are performed:
+During the :meth:`prepare <pyesm.component.ComponentCompute.prepare>` phase,
+the following steps are performed:
 
 #. The default filetables are read:
    ``<Component.Name>_<Component.Version>_prepare_default_files.json``.
@@ -40,10 +41,12 @@ During the preperation phase, the following steps are performed:
 Note that before and after each of these steps, users may attach self-defined
 methods. The image above only gives the "short" names of the methods (with the
 exception of ``change_from_env``, this is actually called
-``override_filetables_from_env``, but that wouldn't fit in the image). The full
-names always take the form ``_prepare_<method short name>``. All of these steps
-are performed if the method ``prepare`` is called on an object that inherits
-from ``ComponentCompute``:
+:meth:`override_filetables_from_env
+<pyesm.component.ComponentCompute._prepare_override_filetables_from_env>`, but
+that wouldn't fit in the image). The full names always take the form
+``_prepare_<method short name>``. All of these steps are performed if the
+method ``prepare`` is called on an object that inherits from
+:class:`ComponentCompute <pyesm.component.ComponentCompute>`:
 
 .. code-block:: python
 
@@ -59,7 +62,8 @@ from ``ComponentCompute``:
 The Work Phase
 --------------
 
-The work phase by default does the following steps:
+The :meth:`work <pyesm.component.ComponentCompute.work>` phase by default does
+the following steps:
 
 #. Copies files from the experiment tree to the work folder
 #. Modifies files in the work folder if needed
@@ -70,18 +74,20 @@ The work phase by default does the following steps:
    :height: 400px
    :align: center
 
-In the basic ``ComponentCompute`` case, only the first step actually does any
-work. Modification of files and namelists needs to be implemented specifically
-for each component. 
+In the basic :class:`ComponentCompute <pyesm.component.ComponentCompute>`
+case, only the first step actually does any work. Modification of files and
+namelists needs to be implemented specifically for each component. 
 
 .. attention::
 
    Currently, copying of files into work directory pops off the files from the
    dictionary, since after the work phase, the cleanup phase loads new
-   dictionaries into ``ComponentCompute.files``, thus after this step the file
+   dictionaries into :attr:`ComponentCompute.files
+   <pyesm.component.Component.files>`, thus after this step the file
    dictionaries are empty.
 
-As before, if the work phase is called, this would happen:
+As before, if the :meth:`work <pyesm.component.ComponentCompute.work>` phase is
+called, this would happen:
 
 .. code-block:: python
 
@@ -95,7 +101,8 @@ As before, if the work phase is called, this would happen:
 The Cleanup Phase
 -----------------
 
-The cleanup phase consists of a single step, moving files from the work folder
+The :meth:`cleanup <pyesm.component.ComponentCompute.cleanup>` phase consists
+of a single step, moving files from the work folder
 to the outdata and restart directories, and setting appropriate names. A new
 filetable is read
 ``<Component.Name>_<Component.Version>_cleanup_default_files.json``: 
@@ -104,7 +111,7 @@ filetable is read
    :height: 400px
    :align: center
 
-Calling the cleanup method would look like this:
+Calling the :meth:`cleanup <pyesm.component.ComponentCompute.cleanup>` method would look like this:
 
 .. code-block:: python
 
@@ -124,7 +131,7 @@ them to the list. The current replacement rules are summarized in the table:
    :widths: auto
    :align: center
 
-Next, we will work through designing a ``SetUp`` object, which controls the
+Next, we will work through designing a :class:`SetUp <pyesm.setup.SetUp>` object, which controls the
 simulation of several connected ``Component``\s
 
 ----
