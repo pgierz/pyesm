@@ -7,7 +7,9 @@ import shutil
 import os
 
 class SimElement(object):
-    """ A meta-object to hold both Component and SetUp """
+    """
+    A meta-object to hold both Component and SetUp
+    """
     NAME = "SimElement"
     VERSION = "0.0.0"
     TYPE = "Generic"
@@ -83,7 +85,8 @@ class SimElement(object):
             where:
 
             + phase is the name of the current phase passed in to
-              ``_call_steps. Could be something like "prepare", "work", "cleanup"
+              ``_call_steps``. Could be something like "prepare", "work",
+              "cleanup"
             + order: automatically determined. Steps run in the order: user,
               default, USER. The "default" is does not need a special name, it is
               automatically used from the method name, e.g.

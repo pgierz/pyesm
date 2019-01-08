@@ -11,6 +11,7 @@ relying on internal libararies to exchange information, such as ``OASIS3mct``
 which can be loosely coupled to other components via a script-based interface.
 
 ----
+
 The following classes are currently implemented
 
 ``SetUp``
@@ -18,6 +19,7 @@ The following classes are currently implemented
 
 ``SetUpCompute``
     The compute job launcher, equivalent to ComponentCompute
+
 ----
 """
 
@@ -33,7 +35,7 @@ class SetUp(SimElement):
 
     def __init__(self, expid, parent_dir=".", components={}):
         """ Sets up a SetUp object with various Component objects 
-        
+
         Parameters
         ----------
         expid : str
@@ -59,6 +61,7 @@ class SetUp(SimElement):
             A list containing all components that are part of this setup.
         _parent_dir : str
             The parent directory where this setup is placed.
+
         """
         super(SetUp, self).__init__()
 

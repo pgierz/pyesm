@@ -1,7 +1,7 @@
 Code: ``component``
 ===================
 
-.. automodule:: component
+.. automodule:: pyesm.component
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ Submodules
 ``component.component_simulation``
 ----------------------------------
 
-.. automodule:: component.component_simulation
+.. automodule:: pyesm.component.component_simulation
     :members:
     :undoc-members:
     :show-inheritance:

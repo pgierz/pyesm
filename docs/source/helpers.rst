@@ -1,7 +1,7 @@
 Code: ``helpers``
 =================
 
-.. automodule:: helpers
+.. automodule:: pyesm.helpers
     :members:
     :private-members:
     :undoc-members:
