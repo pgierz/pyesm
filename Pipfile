@@ -10,8 +10,6 @@ sphinx = "*"
 pycodestyle = "*"
 autopep8 = "*"
 coverage-badge = "*"
-ipython = "*"
-jinja2 = "*"
 
 [packages]
 pendulum = "*"
