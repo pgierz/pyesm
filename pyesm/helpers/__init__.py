@@ -2,11 +2,15 @@
 Contains classes and other objects for helping
 """
 import collections
-import logging
 import shutil
 import os
 
+import pyesm.logging as logging
+
 import f90nml
+
+
+logger = logging.set_logging_this_module()
 
 
 def load_environmental_variable_1_0(varstring):
@@ -84,7 +88,7 @@ class SimElement(object):
 
         setattr(self, directory_type + "_dir", dir_location)
         if not os.path.exists(dir_location):
-            logging.debug("Making directory: %s", str(dir_location))
+            logger.debug("Making directory: %s", str(dir_location))
             os.makedirs(dir_location)
 
     def _call_steps(self, phase, steps):
@@ -134,15 +138,15 @@ class SimElement(object):
             calling component._example_step2
             calling component._example_USER_step2
             """
-            logging.info(80*"=")
+            logger.info(80*"=")
             log_string = "working on " + phase.replace("_", " ") + " " + self.Name.replace("_", " ")
-            logging.info(" ".join(log_string.split()).upper().center(80))
-            logging.info("")
+            logger.info(" ".join(log_string.split()).upper().center(80))
+            logger.info("")
             for step in steps:
-                logging.debug(" ".join(step.replace("_", " ").split()).upper().center(80))
+                logger.debug(" ".join(step.replace("_", " ").split()).upper().center(80))
                 for order in ["user", "", "USER"]:
                     order_str = order if order else "default"
-                    logging.debug(" ".join(order_str.split()).center(80))
+                    logger.debug(" ".join(order_str.split()).center(80))
                     thisstep = getattr(self, "_".join(["_", phase, order, step]).replace("__", "_"), None)
                     thisstep_args = getattr(self, "_".join(["_", phase, order, step, "args"]).replace("__", "_"), None)
                     thisstep_kwargs = getattr(self, "_".join(["_", phase, order, step, "kwargs"]).replace("__", "_"), None)
@@ -152,16 +156,16 @@ class SimElement(object):
                     if thisstep_kwargs is not None:
                         assert isinstance(thisstep_kwargs, dict)
 
-                    logging.debug("%(step)s --> %(thisstep)s", {"step": step, "thisstep": thisstep})
-                    logging.debug("%(step)s args --> %(thisstep_args)s", {"step": step, "thisstep_args": thisstep_args})
-                    logging.debug("%(step)s kwargs --> %(thisstep_kwargs)s ", {"step": step, "thisstep_kwargs": thisstep_kwargs})
+                    logger.debug("%(step)s --> %(thisstep)s", {"step": step, "thisstep": thisstep})
+                    logger.debug("%(step)s args --> %(thisstep_args)s", {"step": step, "thisstep_args": thisstep_args})
+                    logger.debug("%(step)s kwargs --> %(thisstep_kwargs)s ", {"step": step, "thisstep_kwargs": thisstep_kwargs})
 
                     if order == "":
                         if not callable(thisstep):
                             raise NotImplementedError("A required step %s of %s is not implemented!" % (step, phase))
 
                     if callable(thisstep):
-                        logging.debug("Calling %s...", thisstep)
+                        logger.debug("Calling %s...", thisstep)
                         if thisstep_args and thisstep_kwargs:
                             thisstep(*thisstep_args, **thisstep_kwargs)
                         elif thisstep_args:
@@ -170,8 +174,8 @@ class SimElement(object):
                             thisstep(**thisstep_kwargs)
                         else:
                             thisstep()
-                logging.debug(40*"- ")
-            logging.info(80*"=")
+                logger.debug(40*"- ")
+            logger.info(80*"=")
 
 
 class ComponentFile(object):
@@ -233,13 +237,13 @@ class ComponentFile(object):
         """
         Uses the ``copy_method`` to copy or link ``src`` to ``dest``.
         """
-        logging.debug("%s.digest() has been called:", __name__)
+        logger.debug("%s.digest() has been called:", __name__)
         if os.path.isdir(self.dest):
             self.dest += "/"+os.path.basename(self.src)
-        logging.debug("%s".ljust(20), self)
+        logger.debug("%s".ljust(20), self)
         self.copy_method(self.src, self.dest)
         self._current_location = self.dest
-        logging.debug("...done!")
+        logger.debug("...done!")
 
     def __eq__(self, other):
         """An equality check method for ComponentFile. Tests if src, dest, and
@@ -291,12 +295,12 @@ class ComponentNamelist(ComponentFile):
 
     def digest(self):
         """ Digest a namelist: write a new namelist object to the dest """
-        logging.debug("%s.digest() has been called:", __name__)
+        logger.debug("%s.digest() has been called:", __name__)
         if os.path.isdir(self.dest):
             self.dest += "/"+os.path.basename(self.src)
-        logging.debug("%s".ljust(20), self)
+        logger.debug("%s".ljust(20), self)
         self.nml.write(self.dest, force=True)
-        logging.debug("...done!")
+        logger.debug("...done!")
 
 
 class TransformedDict(collections.MutableMapping):

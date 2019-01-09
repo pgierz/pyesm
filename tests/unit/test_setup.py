@@ -1,4 +1,5 @@
 import logging
+import mock
 import shutil
 import socket
 import sys
@@ -12,6 +13,7 @@ else:
 
 from pyesm.setup import SetUp
 from pyesm.setup.setup_simulation import SetUpCompute
+import pyesm.logging as logging
 
 display_logging = False
 

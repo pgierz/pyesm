@@ -1,4 +1,5 @@
 import logging
+import mock
 import os
 import socket
 import subprocess
@@ -14,6 +15,8 @@ else:
 from pyesm.compute_hosts import Host
 from pyesm.batch_systems import BatchSystem
 from pyesm.batch_systems.slurm import Slurm
+from pyesm.compute_hosts import Host
+import pyesm.logging as logging
 
 
 display_logging = False

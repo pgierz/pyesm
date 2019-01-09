@@ -28,10 +28,14 @@ An example host configuration file is provided::
 import glob
 import inspect
 import json
-import logging
 import os
 import socket
 import zipfile
+
+import pyesm.logging as logging
+
+logger = logging.set_logging_this_module()
+
 
 class Host(object):
     def __init__(self):
@@ -60,33 +64,34 @@ class Host(object):
         options are possible. The hostname is automatically determined based
         upon ``socket.gethostname``
         """
-        logging.debug(80*"*")
+        logger.debug(80*"*")
         HOSTNAME = socket.gethostname()
-        logging.debug("\nInitializing a Host object with attributes for %s", HOSTNAME)
+        logger.debug("\nInitializing a Host object with attributes for %s", HOSTNAME)
         module_file = inspect.getfile(Host)
         module_directory = os.path.dirname(module_file)
         parent_egg_module_directory = "/".join(os.path.dirname(module_file).split("/")[:-2])
-        
-        logging.debug("Looking for host configuration files in %s", module_directory)
-        logging.debug("All the files are:")
-        
+
+        logger.debug("Looking for host configuration files in %s", module_directory)
+        logger.debug("All the files are:")
+
         # Determine what kind of model_directory it actually is:
         regular_dir = os.path.isdir(module_directory)
         egg_dir = zipfile.is_zipfile(module_directory)
         parent_egg_dir = zipfile.is_zipfile(parent_egg_module_directory)
 
-        logging.debug("%s is regular_dir? %s", module_directory, regular_dir)
-        logging.debug("%s is egg_dir? %s", module_directory, egg_dir)
-        logging.debug("%s is parent_egg_dir? %s", parent_egg_dir, parent_egg_dir)
+        logger.debug("%s is regular_dir? %s", module_directory, regular_dir)
+        logger.debug("%s is egg_dir? %s", module_directory, egg_dir)
+        logger.debug("%s is parent_egg_dir? %s", parent_egg_dir, parent_egg_dir)
 
         if regular_dir:
+                using_egg=False
                 for thisfile in os.listdir(module_directory):
-                        logging.debug("\t\t - %s", thisfile)
+                        logger.debug("\t\t - %s", thisfile)
 
                 json_files = glob.glob(module_directory+"/*.json")
-                logging.debug("Found these host configuration files:")
+                logger.debug("Found these host configuration files:")
                 for json_file in json_files:
-                    logging.debug("\t\t - %s", json_file)
+                    logger.debug("\t\t - %s", json_file)
         else:
                 using_egg = True
                 if egg_dir:
@@ -98,14 +103,14 @@ class Host(object):
                 json_files = []
                 for thisfile in zipped_egg_file.namelist():
                         json_files.append(thisfile)
-                        logging.debug("\t\t - %s", thisfile)
+                        logger.debug("\t\t - %s", thisfile)
 
         host_file = [f for f in json_files if os.path.basename(f).split(".")[0] in HOSTNAME]
-        logging.debug("After parsing, these host_files exist: %s", host_file)
+        logger.debug("After parsing, these host_files exist: %s", host_file)
         assert len(host_file) == 1
         host_file = host_file[0]
 
-        logging.info("\n\t\t - Loading: %s ", host_file)
+        logger.info("\n\t\t - Loading: %s ", host_file)
         if using_egg:
                 host_json = json.loads(zipped_egg_file.read(host_file))
                 self.__dict__.update(host_json)

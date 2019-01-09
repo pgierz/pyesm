@@ -4,9 +4,12 @@ analyses, etc...
 
 ----
 """
-import logging
 import os
 import sqlite3
+
+import pyesm.logging as logging
+
+logger = logging.set_logging_this_module()
 
 class ESMDatabase(object):
     """
@@ -54,8 +57,8 @@ class ESMDatabase(object):
         insert_component_command = """INSERT INTO Component (Name, Version, Lateral_Res, Vertical_Res, Timestep) VALUES ("%s", "%s", "%s", "%s", "%s");""" % (str(Name), str(Version), str(LateralResolution),
                                                                                                                                                               str(VerticalResolution), str(Timestep))
 
-        logging.debug(create_table_command)
-        logging.debug(insert_component_command)
+        logger.debug(create_table_command)
+        logger.debug(insert_component_command)
 
         self.cursor.execute(create_table_command)
         self.cursor.execute(insert_component_command)

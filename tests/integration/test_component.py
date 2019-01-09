@@ -2,8 +2,8 @@ import os
 import sys
 import shutil
 import unittest
-import logging
 
+import pyesm.logging as logging
 from pyesm.component.component_simulation import ComponentCompute
 
 display_logging = False

@@ -24,13 +24,15 @@ defined
 import csv
 import inspect
 import json
-import logging
 import os
 import shutil
 
+import pyesm.logging as logging
 from pyesm.component import Component
 from pyesm.helpers import ComponentFile
 from pyesm.time_control import EsmCalendar
+
+logger = logging.set_logging_this_module()
 
 class ComponentCompute(Component):
     """
@@ -108,15 +110,15 @@ class ComponentCompute(Component):
 
     def _log_compute_requirements(self):
         """ Print out information about the compute requirements """
-        logging.info(80*"-")
+        logger.info(80*"-")
         info_str="compute requirements for " + self.Name
         info_str = " ".join(info_str.split()).upper().center(80)
-        logging.info(info_str)
-        logging.info("\n%s will use the executable: \nexecutable=%s", self.Name, self.EXECUTEABLE)
-        logging.info("\n%s will use: \nnum_threads=%s", self.Name, self.NUM_THREADS)
-        logging.info("\nThe execution command will be: \ncommand=%s", self.COMMAND)
-        logging.info(80*"-")
-    
+        logger.info(info_str)
+        logger.info("\n%s will use the executable: \nexecutable=%s", self.Name, self.EXECUTEABLE)
+        logger.info("\n%s will use: \nnum_threads=%s", self.Name, self.NUM_THREADS)
+        logger.info("\nThe execution command will be: \ncommand=%s", self.COMMAND)
+        logger.info(80*"-")
+
     def prepare(self, steps=None):
         """
         All steps needed to actually prepare a run happen here.
@@ -137,7 +139,7 @@ class ComponentCompute(Component):
         ESM Model, you can pass a list of strings as the argument
         ``steps=["step1", "step2", "step3"]``, which will be given to
         _call_steps with the phase classification "prepare"
-        
+
         Parameters
         ----------
         steps : list, optional
@@ -212,15 +214,15 @@ class ComponentCompute(Component):
         data_file_string = json_dir + name 
         with open(data_file_string) as data_file:
             table_files = json.load(data_file)
-        logging.debug("Loaded files for %s from JSON Table %s", self.Name, data_file_string)
-        logging.debug("Here is what was loaded: %s", table_files)
+        logger.debug("Loaded files for %s from JSON Table %s", self.Name, data_file_string)
+        logger.debug("Here is what was loaded: %s", table_files)
 
         for filetype, entrylist in table_files.items():
-            logging.debug("filetype --> %s entrylist --> %s", filetype, entrylist)
+            logger.debug("filetype --> %s entrylist --> %s", filetype, entrylist)
             if filetype in self.files.keys():
                 for entry in entrylist:
-                    logging.debug("entry --> %s", entrylist[entry])
-                    logging.debug("*entry --> %s", " ".join(entrylist[entry]))
+                    logger.debug("entry --> %s", entrylist[entry])
+                    logger.debug("*entry --> %s", " ".join(entrylist[entry]))
                     #
                     # NOTE: Here, we check if the JSON file was interpred as a ``list`` or
                     # as a ``dict``. In the case of ``list``, we **assume the user was smart**
@@ -239,7 +241,7 @@ class ComponentCompute(Component):
                         raise TypeError("You are tying to use _read_filetables to put data into ComponentFile; only list or dict are allowed!")
             else:
                 raise KeyError("Invalid key: %s. You must give one of %s in your JSON file %s" % (filetype, self._filetypes, data_file_string))
-        logging.debug(self.files)
+        logger.debug(self.files)
 
     def _prepare_read_filetables(self, json_dir=None):
         """
@@ -259,7 +261,7 @@ class ComponentCompute(Component):
         if json_dir is None:
             json_dir = self._table_dir
 
-        logging.debug("The used JSON dir in _prepare_read_filetables is %s", json_dir)
+        logger.debug("The used JSON dir in _prepare_read_filetables is %s", json_dir)
         self._read_filetables(json_dir, "prepare_default")
 
     def _prepare_modify_filetables(self, json_dir=None):
@@ -287,7 +289,7 @@ class ComponentCompute(Component):
 
         if os.path.exists("/".join([json_dir, "_".join([self.Name, self.Version,
                                                         "prepare_modify", "files.json"])])):
-            logging.debug("Modify Table for %s exists, reading and modifying files...", self.Name)
+            logger.debug("Modify Table for %s exists, reading and modifying files...", self.Name)
             self._read_filetables(json_dir, "prepare_modify")
 
     def _prepare_override_filetables_from_env(self):
@@ -313,7 +315,7 @@ class ComponentCompute(Component):
                 actual_destination = os.path.normpath("/".join([getattr(self, filetype + "_dir"),
                                                                 os.path.basename(thisfile.dest)]))
                 if thisfile.dest != os.path.basename(thisfile.dest):
-                    logging.warning("You gave a full path for %s; it will be re-set to go to %s",
+                    logger.warning("You gave a full path for %s; it will be re-set to go to %s",
                                     thisfile.dest,
                                     actual_destination)
                 thisfile.dest = actual_destination

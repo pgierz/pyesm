@@ -49,11 +49,13 @@ Subclasses include:
 """
 # Note on names: see https://stackoverflow.com/questions/935378/difference-between-method-and-method
 
-import logging
 import os
 
+import pyesm.logging as logging
 from pyesm.database import ESMDatabase
 from pyesm.helpers import FileDict, SimElement
+
+logger = logging.set_logging_this_module()
 
 DOWNLOAD_ADDRESS = "http://some/address/of/a/project"
 
@@ -130,17 +132,17 @@ class Component(SimElement):
             for example "_outdata_dir", which points to the absolute location
             of the outdata for this specific Component.
         """
-        logging.info(80*"=")
-        logging.info("\n")
+        logger.info(80*"=")
+        logger.info("\n")
         super(Component, self).__init__(parent_dir=parent_dir+"/"+expid)
 
         # Set up public attributes
         self.expid = expid
 
         log_str = " ".join((self.Type + "Model: "+ self.Name +" version: "+ self.Version).split()).upper().center(80)
-        logging.info(log_str)
-        logging.info("\n")
-        logging.info(80*"=")
+        logger.info(log_str)
+        logger.info("\n")
+        logger.info(80*"=")
 
         # Call private methods which might be interesting for initialization
         #
@@ -155,7 +157,7 @@ class Component(SimElement):
 
         # Keep an optional database of Components and simulations performed with them.
         if use_SQL:
-            logging.info("Using SQL for component %s", self.Name)
+            logger.info("Using SQL for component %s", self.Name)
             self.database = ESMDatabase()
             self.database.register_component(self.Name,
                                              self.Version,
@@ -186,25 +188,25 @@ class Component(SimElement):
 
     def _log_resolution(self):
         """ Print out information about the resolution """
-        logging.info(80*"-")
+        logger.info(80*"-")
         info_str="resolution information for "+self.Name
         info_str = " ".join(info_str.split()).upper().center(80)
-        logging.info(info_str)
-        logging.info("\n%s will be run with: \nLateralResolution=%s\nVerticalResolution=%s",
+        logger.info(info_str)
+        logger.info("\n%s will be run with: \nLateralResolution=%s\nVerticalResolution=%s",
                      self.Name,
                      self.LateralResolution,
                      self.VerticalResolution)
-        logging.info("\n%s will use a computational timestep:\ntimestep=%s",
+        logger.info("\n%s will use a computational timestep:\ntimestep=%s",
                      self.Name, self.Timestep)
-        logging.info(80*"-")
+        logger.info(80*"-")
 
     def _finalize_log_messages(self):
         """ Logging messages to be printed at the very end of the init step.
         Overload this if you want to print out additional information """
 
-        logging.info("Initialized a new component: %s", self.Name)
-        logging.debug("This is known in the current namespace for %s: %s", self.Name, locals())
-        logging.debug("Here is what is attached to self: %s", dir(self))
-        logging.info(80*"=")
-        logging.info("\n")
-        logging.info(80*"=")
+        logger.info("Initialized a new component: %s", self.Name)
+        logger.debug("This is known in the current namespace for %s: %s", self.Name, locals())
+        logger.debug("Here is what is attached to self: %s", dir(self))
+        logger.info(80*"=")
+        logger.info("\n")
+        logger.info(80*"=")

@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import shutil
 import sys
@@ -9,6 +8,7 @@ import unittest
 from pyesm.component import Component
 from pyesm.component.component_simulation import ComponentCompute
 from pyesm.helpers import ComponentFile, FileDict
+import pyesm.logging as logging
 
 from tests import set_env
 

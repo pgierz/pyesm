@@ -5,14 +5,16 @@ Classes to hold Compute and PostProcessing jobs for entire setups
 ----
 """
 import importlib
-import logging
 import os
 import sys
 
+import pyesm.logging as logging
 from pyesm.time_control import EsmCalendar
 from pyesm.setup import SetUp
 from pyesm.time_control import EsmCalendar
 from pyesm.compute_hosts import Host
+
+logger = logging.set_logging_this_module()
 
 
 class SetUpCompute(SetUp):
@@ -91,7 +93,7 @@ class SetUpCompute(SetUp):
         maxlen = 3+len(max(key_list, key=len))
         debug_str="{:<"+str(maxlen)+"}{:<"+str(maxlen)+"}{:<}"
         for key_a, key_b, key_c in zip(key_list[::3], key_list[1::3], key_list[2::3]):
-            logging.debug(debug_str.format(key_a, key_b, key_c))
+            logger.debug(debug_str.format(key_a, key_b, key_c))
 
         # Get the component's init method, initialize the component, and
         # register it to the setup under Component.Name This would be the same

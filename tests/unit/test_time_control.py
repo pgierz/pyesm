@@ -2,9 +2,9 @@ import os
 import sys
 import shutil
 import unittest
-import logging
 
 from pyesm.time_control import EsmCalendar
+import pyesm.logging as logging
 
 class TestEsmCalendar(unittest.TestCase):
     """ Various tests for the EsmCalendar Time Controller """

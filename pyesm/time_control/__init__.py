@@ -21,7 +21,10 @@ time.
 """
 import collections
 import pendulum
-import logging
+
+import pyesm.logging as logging
+
+logger = logging.set_logging_this_module()
 
 
 def parse_esm_date_string(date_string):
@@ -121,7 +124,7 @@ class EsmCalendar(object):
                 self.current_date = parse_esm_date_string(date_string)
         # NOTE: IOError might be called FileNotFoundError in python3+
         except IOError:
-            logging.debug("The datefile %s was not found, assuming very first run", date_file)
+            logger.debug("The datefile %s was not found, assuming very first run", date_file)
         self.update_dates()
 
     def write_date_file(self, date_file):
@@ -134,7 +137,7 @@ class EsmCalendar(object):
         date_file : str
             The full path with filename where the file should be written.
         """
-        logging.debug("Writing next_date=%s and next_run_number=%s to %s for next run in file %s",
+        logger.debug("Writing next_date=%s and next_run_number=%s to %s for next run",
                       self.next_date, self.next_run_number, date_file)
         with open(date_file, "w") as f:
             f.write(" ".join([self.next_date.format("YYYYMMDD"), str(self.next_run_number)]))

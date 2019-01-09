@@ -4,11 +4,14 @@
 
 """
 import getpass
-import logging
 import os
 import subprocess
 
+import pyesm.logging as logging
+
 from . import BatchSystem
+
+logger = logging.getLogger(__name__)
 
 class Slurm(BatchSystem):
     def __init__(self, host=None, account=None):
@@ -43,10 +46,10 @@ class Slurm(BatchSystem):
 
         Notes
         -----
-            If you use logging at the ``DEBUG`` level, you get a print-out upon initialization of
+            If you use logger at the ``DEBUG`` level, you get a print-out upon initialization of
             the submitter, launcher, launcher flags, status command, and resource account
         """
-        logging.debug(80*"*")
+        logger.debug(80*"*")
         super(Slurm, self).__init__(host)
         self.submitter = getattr(self._host, "batch_system_submitter", "sbatch")
         self.launcher = getattr(self._host, "batch_system_launcher", "srun")
@@ -56,13 +59,13 @@ class Slurm(BatchSystem):
 
         self._account = account
 
-        logging.debug("\nInitialized a Slurm BatchSystem with following attributes:")
+        logger.debug("\nInitialized a Slurm BatchSystem with following attributes:")
         for this_attr_name, this_attr_value in {"Submitter": self.submitter,
                                                 "Launcher": self.launcher,
                                                 "Launcher Flags": self.launcher_flags,
                                                 "Status Command": self.status_command, 
                                                 "Resource Account": self._account}.items():
-            logging.debug("\t\t - %s: %s", this_attr_name, this_attr_value)
+            logger.debug("\t\t - %s: %s", this_attr_name, this_attr_value)
 
     @staticmethod
     def check_full_queue():
@@ -111,8 +114,8 @@ class Slurm(BatchSystem):
             A string containing all the information described above. This can
             be given to the ``sbatch`` submitter as a series of flags.
         """
-        logging.debug(40*"- ")
-        logging.debug("\nConstructing Submitter Flags for Slurm Batch System:")
+        logger.debug(40*"- ")
+        logger.debug("\nConstructing Submitter Flags for Slurm Batch System:")
         if self._account:
             self.submitter_flags["--account"] = self._account
         self.submitter_flags["--partition"] = self._host.partitions[job_flag]
@@ -126,11 +129,11 @@ class Slurm(BatchSystem):
             self.submitter_flags["--exclusive"] = True
 
         for key, val in self.submitter_flags.items():
-            logging.debug("\t\t - %s: %s", key, val)
+            logger.debug("\t\t - %s: %s", key, val)
 
         submitter_flags_string = ' '.join("%s=%s" % (key,val) for (key,val) in self.submitter_flags.items())
         submitter_flags_string = submitter_flags_string.replace("=True", "")
-        logging.debug("\n\t\t - Finalized submitter flags: %s", submitter_flags_string)
+        logger.debug("\n\t\t - Finalized submitter flags: %s", submitter_flags_string)
         return submitter_flags_string
 
     def construct_submit_command(self, **submitter_flags):
@@ -175,22 +178,23 @@ class Slurm(BatchSystem):
             with the launcher for this host (default srun), appropriate flags,
             and a reference to the hostfile_srun.
         """
-        logging.debug(40*"- ")
-        logging.debug("\nConstructing hostfile_srun...")
+        logger.debug(40*"- ")
+        logger.debug("\nConstructing hostfile_srun...")
         if os.path.exists("hostfile_srun"):
             os.remove("hostfile_srun")
 
         current_start = 0
         current_end = 0
         for this_executable_command, this_executable_tasks in zip(executable_commands, executable_tasks):
-            logging.debug("\t\t - %s tasks left to assign...", job_ntasks)
-            logging.debug("\t\t - Assigning %s tasks for %s", this_executable_tasks, this_executable_command)
+            logger.debug("\t\t - %s tasks left to assign...", job_ntasks)
+            logger.debug("\t\t - Assigning %s tasks for %s", this_executable_tasks, this_executable_command)
             current_start = current_end + 1
             current_end = current_start + this_executable_tasks - 1
             with open("hostfile_srun", "a") as hostfile_srun:
                 hostfile_srun.write(str(current_start) + "-" + str(current_end) + " ./" + this_executable_command + "\n")
             job_ntasks -= this_executable_tasks
-            logging.debug("\t\t - Current Start=%s, Current End = %s", current_start, current_end)
-        launcher_flags_string = ' '.join(["%s=%s" % (key,val) for (key,val) in self.launcher_flags.items()])
+            logger.debug("\t\t - Current Start=%s, Current End = %s", current_start, current_end)
+        # FIXME: This next line needs a six check for both python2 and python3 compatability
+        launcher_flags_string = ' '.join("%s=%s" % (key,val) for (key,val) in self.launcher_flags.iteritems())
         launcher_flags_string = launcher_flags_string.replace("=True", "")
         return ' '.join([self.launcher, launcher_flags_string, "--multi-prog", "hostfile_srun"])  
