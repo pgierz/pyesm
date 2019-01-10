@@ -24,15 +24,18 @@ PARENT_PID = str(os.getppid())
 
 
 
-def set_logging_this_module():
+def set_logging_this_module(log_dir=None):
     frm = inspect.stack()[1]
     mod = inspect.getmodule(frm[0])
     logger = logging.getLogger(mod.__name__)
     logger.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+    log_file = "_".join([mod.__name__, THIS_PID])+".log"
+    if log_dir:
+        log_file = "/".join([log_dir, log_file])
+    file_handler = logging.FileHandler(log_file)
 
-    file_handler = logging.FileHandler("_".join([mod.__name__, THIS_PID])+".log")
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
     file_handler.setFormatter(formatter)
 
     logger.addHandler(file_handler)
