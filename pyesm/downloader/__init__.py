@@ -95,10 +95,10 @@ def download_from_git(GitAddress, DestPath, ModelName, ModelType):
     if FancyDisplay:
         with tqdm.tqdm(ncols=120, desc=emoji.emojize("Cloning "+ModelName+" "+EmojiString)) as t:
             dl_hook = my_hook(t)
-            echam_repo = git.Repo.clone_from(GitAddress, to_path=DestPath, progress=dl_hook)
+            git.Repo.clone_from(GitAddress, to_path=DestPath, progress=dl_hook)
     else:
         print("Cloning %s Model %s" % (ModelType, ModelType))
         if git_module_available:
-            repo = git.Repo.clone_from(GitAddress, to_path=DestPath)
+            git.Repo.clone_from(GitAddress, to_path=DestPath)
         else:
             subprocess.check_output([GitAddress, DestPath])
