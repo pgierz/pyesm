@@ -5,8 +5,6 @@ This modules controls where logging messages go and how they are formatted.
 
 TODO:
 
-+ [ ] I need to find out how to inherit from the regular logging module without breaking anything
-
 ----
 
 """
@@ -24,13 +22,17 @@ PARENT_PID = str(os.getppid())
 
 
 
-def set_logging_this_module(log_dir=None):
+def set_logging_this_module(log_dir=None, log_tag=None):
     frm = inspect.stack()[1]
     mod = inspect.getmodule(frm[0])
     logger = logging.getLogger(mod.__name__)
     logger.setLevel(logging.INFO)
 
-    log_file = "_".join([mod.__name__, THIS_PID])+".log"
+    if log_tag:
+        log_file_parts = [mod.__name__, log_tag, THIS_PID]
+    else:
+        log_file_parts = [mod.__name__, THIS_PID]
+    log_file = "_".join(log_file_parts)+".log"
     if log_dir:
         log_file = "/".join([log_dir, log_file])
     file_handler = logging.FileHandler(log_file)
