@@ -9,4 +9,5 @@ setup(name='pyesm',
       author_email='pgierz@awi.de',
       url='https://github.com/pgierz/pyesm',
       packages=find_packages(), 
+      install_requires=["pendulum", "cdo", "f90nml"],
      )
