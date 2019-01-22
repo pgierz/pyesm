@@ -9,5 +9,7 @@ setup(name='pyesm',
       author_email='pgierz@awi.de',
       url='https://github.com/pgierz/pyesm',
       packages=find_packages(), 
+      package_data={"": ["*.json", "*.csv"]},
+      include_package_data=True,
       install_requires=["pendulum", "cdo", "f90nml"],
      )
