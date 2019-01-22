@@ -120,15 +120,43 @@ class EsmCalendar(object):
 
     def write_date_file(self, date_file):
         """
-        Writes the starting date and run number of the **NEXT** run. This is called at the
-        very end of a simulation
+        Writes the starting date and run number of the **NEXT** run. This is
+        called at the very end of a simulation
 
         Parameters
         ----------
         date_file : str
             The full path with filename where the file should be written.
         """
-        logging.debug("Writing next_date=%s and next_run_number=%s to %s for next run",
+        logging.debug("Writing next_date=%s and next_run_number=%s to %s for next run in file %s",
                       self.next_date, self.next_run_number, date_file)
         with open(date_file, "w") as f:
             f.write(" ".join([self.next_date.format("YYYYMMDD"), str(self.next_run_number)]))
+
+class CouplingEsmCalendar(EsmCalendar):
+    """
+    Contains some extra functionality for iterative coupling to read chunk
+    files as well as date files.
+    """
+    def __init__(self, *standard_calendar_args):
+        super().__init__(*standard_calendar_args)
+
+    def write_chunk_file(self, chunk_file, setup_name):
+        """
+        Writes the starting date, chunk number, and run number of the **NEXT**
+        chunk. This is called at the very end of an iteratively coupled
+        simulation.
+
+        Parameters
+        ----------
+        chunk_file : str
+            The full path with the filename where the file should be written.
+        setup_name : str
+            The name of the setup that will start **NEXT**
+        """
+        logging.debug("Writing next chunk_start_date=%s, chunk_number=%s, and setup=%s for next chunk to file %s",
+                self.next_chunk_start_date, self.next_chunk_number, setup_name, chunk_file)
+        with open(chunk_file, "w") as f:
+            f.write(" ".join([self.next_chunk_start_date.format("YYYYMMDD"),
+                              str(self.next_chunk_number),
+                              setup_name]))
