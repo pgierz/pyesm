@@ -17,6 +17,9 @@ tqdm = "*"
 gitpython = "*"
 emoji = "*"
 f90nml = "*"
+cdo = "*"
+nco = "*"
+xarray = "*"
 
 [requires]
 python_version = "2.7"

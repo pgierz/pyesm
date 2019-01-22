@@ -31,8 +31,8 @@ if FancyDisplay:
         except ImportError:
             print("Fancy display doesn't work at all, sorry!")
             FancyDisplay = False
-    else:
-        print("Fancy display doesn't work at all, sorry!")
+else:
+    print("Fancy display doesn't work at all, sorry!")
 
 def download_from_git(GitAddress, DestPath, ModelName, ModelType):
     """Downloads a git repository to a specific path.
@@ -81,9 +81,6 @@ def download_from_git(GitAddress, DestPath, ModelName, ModelType):
                 last_b[0] = 0
         return update_to
 
-    if os.path.exists("echam6"):
-        shutil.rmtree("echam6")
-
     if UseEmoji:
         type_to_emoji = {"Atmosphere": ":cloud:", "Land": ":seedling:",
                          "Ocean": ":ocean:", "Ice": ":snowflake:", 
@@ -92,13 +89,14 @@ def download_from_git(GitAddress, DestPath, ModelName, ModelType):
         EmojiString = emoji.emojize(type_to_emoji.get(ModelType, ":puzzle:"))
     else:
         EmojiString = ""
+
     if FancyDisplay:
         with tqdm.tqdm(ncols=120, desc=emoji.emojize("Cloning "+ModelName+" "+EmojiString)) as t:
             dl_hook = my_hook(t)
-            echam_repo = git.Repo.clone_from(GitAddress, to_path=DestPath, progress=dl_hook)
+            git.Repo.clone_from(GitAddress, to_path=DestPath, progress=dl_hook)
     else:
         print("Cloning %s Model %s" % (ModelType, ModelType))
         if git_module_available:
-            repo = git.Repo.clone_from(GitAddress, to_path=DestPath)
+            git.Repo.clone_from(GitAddress, to_path=DestPath)
         else:
             subprocess.check_output([GitAddress, DestPath])
