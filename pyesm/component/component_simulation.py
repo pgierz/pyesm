@@ -37,7 +37,7 @@ class ComponentCompute(Component):
     Contains elements of a Component related to actually running a simulation
     """
 
-    def __init__(self, table_dir, calendar, *Component_args, **Component_kwargs):
+    def __init__(self, table_dir=None, calendar=None, *Component_args, **Component_kwargs):
         """ Initialization of a Compute part for a Component with phase
         instructions for prepare, work, and cleanup.
 
@@ -73,9 +73,11 @@ class ComponentCompute(Component):
             The number of threads`
         """
         super(ComponentCompute, self).__init__(*Component_args, **Component_kwargs)
-        self.calendar = calendar
+        self.calendar = calendar or EsmCalendar()
 
-        self._table_dir = table_dir
+        # FIXME: This needs to point to whatever the module directory is...
+
+        self._table_dir = table_dir or "."
         self._register_directory("work", use_Name=False)
         self._compute_requirements()
         self._log_compute_requirements()

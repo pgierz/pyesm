@@ -132,7 +132,7 @@ class Component(SimElement):
         """
         logging.info(80*"=")
         logging.info("\n")
-        super(Component, self).__init__(parent_dir=parent_dir)
+        super(Component, self).__init__(parent_dir=parent_dir+"/"+expid)
 
         # Set up public attributes
         self.expid = expid
