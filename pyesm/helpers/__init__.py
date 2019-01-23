@@ -8,6 +8,11 @@ import os
 
 import f90nml
 
+
+def load_environmental_variable_1_0(varstring):
+        return True if os.environ.get(varstring, False) == "1" else False
+
+
 class SimElement(object):
     """
     A meta-object to hold both Component and SetUp
