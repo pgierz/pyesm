@@ -19,6 +19,7 @@ time.
 
 ----
 """
+import collections
 import pendulum
 import logging
 
@@ -69,7 +70,7 @@ class EsmCalendar(object):
             components, which are normally defined in namelists. This basically
             controls how often the simulation submits a new job.
     """
-    def __init__(self, initial_date, final_date, delta_date):
+    def __init__(self, initial_date="18500101", final_date="18530101", delta_date="years=1"):
         """
         Initializes a new ``esm_calendar`` object
         """
@@ -80,8 +81,12 @@ class EsmCalendar(object):
         for k, v in delta_date_dict.items():
             delta_date_dict[k] = int(v)
         self.delta_time = pendulum.duration(**delta_date_dict)
-        self.current_date = parse_esm_date_string(self.initial_date)
+        self.current_date = self.start_date = parse_esm_date_string(self.initial_date)
+        self.end_date = self.start_date + self.delta_time
 
+
+    def update_dates(self):
+        """ Updates previous_date, previous_run_number, next_date, and next_run_number """
         self.previous_date = self.current_date - self.delta_time
         self.previous_run_number = self.run_number - 1
 
@@ -117,6 +122,7 @@ class EsmCalendar(object):
         # NOTE: IOError might be called FileNotFoundError in python3+
         except IOError:
             logging.debug("The datefile %s was not found, assuming very first run", date_file)
+        self.update_dates()
 
     def write_date_file(self, date_file):
         """
@@ -138,10 +144,17 @@ class CouplingEsmCalendar(EsmCalendar):
     Contains some extra functionality for iterative coupling to read chunk
     files as well as date files.
     """
-    def __init__(self, *standard_calendar_args):
-        super().__init__(*standard_calendar_args)
+    def __init__(self, chunk_lengths, **standard_calendar_kwargs):
+        super(CouplingEsmCalendar, self).__init__(**standard_calendar_kwargs)
+        self.setups = collections.deque(chunk_lengths.keys())
+        # FIXME: where to turn the ints into datetimes? Here? Below? Not at all???
+        self.chunk_lengths = chunk_lengths
+        self.chunk_number = {setup: 1 for setup in self.setups}
+        for setup in self.setups:
+                self.coupling_start_date = {setup: self.start_date}
+                self.coupling_end_date = {setup: self.coupling_start_date[setup].add(years=self.chunk_lengths[setup])}
 
-    def write_chunk_file(self, chunk_file, setup_name):
+    def write_chunk_file(self, setup_name):
         """
         Writes the starting date, chunk number, and run number of the **NEXT**
         chunk. This is called at the very end of an iteratively coupled
@@ -155,7 +168,7 @@ class CouplingEsmCalendar(EsmCalendar):
             The name of the setup that will start **NEXT**
         """
         logging.debug("Writing next chunk_start_date=%s, chunk_number=%s, and setup=%s for next chunk to file %s",
-                self.next_chunk_start_date, self.next_chunk_number, setup_name, chunk_file)
+                self.next_chunk_start_date, self.chunk_number[setup_name], setup_name, chunk_file)
         with open(chunk_file, "w") as f:
             f.write(" ".join([self.next_chunk_start_date.format("YYYYMMDD"),
                               str(self.next_chunk_number),
