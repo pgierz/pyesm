@@ -42,7 +42,7 @@ class SimElement(object):
         self._parent_dir = parent_dir
         self._filetypes = ["config", "forcing", "input", "log", "mon", "outdata", "restart"]
 
-    def _register_directory(self, directory_type, use_Name=True):
+    def _register_directory(self, directory_type, use_Name="name"):
         """
         Sets an attribute ``component.<directory_type>_dir`` and creates the
         directory if it doesn't exist.
@@ -51,9 +51,11 @@ class SimElement(object):
         ----------
         directory_type : str
             The name of the directory type you want to register/create
-        use_Name : bool, optional
-            Default is True. If this is set, the directory type will contain a
-            sub-directory with the SimElement's ``Name`` attribute
+        use_Name : str, optional
+            Default is "name". If this is set, the directory type will contain a
+            sub-directory with the SimElement's ``Name`` attribute. If you use
+            "generic", you get a generic name for the subfolder. If you put
+            anything "false"-y, you do not get a subname.
 
         Examples
         --------
@@ -65,8 +67,13 @@ class SimElement(object):
         >>> example_sim_element.analysis_dir
         ./analysis
         """
-        if use_Name:
+        if use_Name == "name":
             dir_location = "/".join([self._parent_dir, directory_type, self.Name])
+        elif use_Name == "generic":
+            dir_location = "/".join([self._parent_dir, directory_type, self.Type])
+        elif isinstance(use_Name, str) and not use_Name == "":
+            raise NameError("You must give either 'name' or 'generic'. Recieved %s. This entry is %s for 'name' and %s for 'generic'" %
+                            (use_Name, use_Name == "name", use_Name == "generic"))
         else:
             dir_location = "/".join([self._parent_dir, directory_type])
 
