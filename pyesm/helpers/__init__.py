@@ -59,10 +59,10 @@ class SimElement(object):
         --------
         >>> example_sim_element = SimElement()
         >>> example_sim_element._register_directory("outdata")
-        >>> example_sim_element._outdata_dir
+        >>> example_sim_element.outdata_dir
         ./outdata/component
         >>> example_sim_element._register_directory("analysis", use_Name=False)
-        >>> example_sim_element._analysis_dir
+        >>> example_sim_element.analysis_dir
         ./analysis
         """
         if use_Name:
