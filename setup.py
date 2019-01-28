@@ -11,5 +11,5 @@ setup(name='pyesm',
       packages=find_packages(), 
       package_data={"": ["*.json", "*.csv"]},
       include_package_data=True,
-      install_requires=["pendulum", "cdo", "f90nml"],
+      install_requires=["pendulum", "cdo", "f90nml", "nco"],
      )
