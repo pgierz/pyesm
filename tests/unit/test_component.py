@@ -36,7 +36,7 @@ def dummy_USER_test(self, default_val=False):
 
 class TestComponentBase(unittest.TestCase):
     def setUp(self):
-        self.test_dir = type(self).__name__
+        self.test_dir = type(self).__name__ 
         os.mkdir(self.test_dir)
 
     def tearDown(self):
@@ -55,7 +55,8 @@ class TestComponent(TestComponentBase):
             comp = self.test_comp
         assert comp.Name == "component"
         assert comp.Version == "0.0.0"
-        assert comp._parent_dir == self.test_dir
+        print("Parent_dir", comp._parent_dir, "test_dir and name", self.test_dir+"/"+comp.expid)
+        assert comp._parent_dir == self.test_dir + "/" + comp.expid
         for filetype in ["restart", "config", "forcing", "input", "log", "mon", "outdata"]:
             assert hasattr(comp, filetype + "_dir")
         for ResString in ["LateralResolution", "VerticalResolution", "Timestep"]:
@@ -117,7 +118,7 @@ class TestComponentCompute_Basics(unittest.TestCase):
         test_component_compute = ComponentCompute(parent_dir=self.test_dir,
                                                   table_dir=tmp_table_dir,
                                                   calendar=None)
-        with open(name=tmp_table_dir+"/component_0.0.0_test_files.json", mode="w") as tmp_json_file:
+        with open(tmp_table_dir+"/component_0.0.0_test_files.json", mode="w") as tmp_json_file:
             data = {}
             data["bad_key"] = "lalala"
             json.dump(data, tmp_json_file)
@@ -126,7 +127,7 @@ class TestComponentCompute_Basics(unittest.TestCase):
                           json_dir=tmp_table_dir,
                           tag="test")
         
-        with open(name=tmp_table_dir+"/component_0.0.0_test_files.json", mode="w") as tmp_json_file:
+        with open(tmp_table_dir+"/component_0.0.0_test_files.json", mode="w") as tmp_json_file:
             data = {}
             data["input"] = {"lalala": "not a list"}
             json.dump(data, tmp_json_file)
@@ -185,15 +186,15 @@ class TestComponentCompute_Prepare(unittest.TestCase):
         self.test_component_compute._prepare_copy_files_to_exp_tree()
 
         try:
-            assert os.path.isfile(type(self).__name__ + "/input/component/initial_conditions")
+            assert os.path.isfile(type(self).__name__ + "/" + self.test_component_compute.expid + "/input/component/initial_conditions")
         except AssertionError:
             for path, dirs, files in os.walk(type(self).__name__):
                 print(path)
                 for f in files:
                     print(f)
-        assert os.path.isfile(type(self).__name__ + "/input/component/boundary_conditions")
-        assert os.path.isfile(type(self).__name__ + "/forcing/component/forcing1")
-        assert os.path.islink(type(self).__name__ + "/restart/component/restart1")
+        assert os.path.isfile(type(self).__name__ + "/" + self.test_component_compute.expid + "/input/component/boundary_conditions")
+        assert os.path.isfile(type(self).__name__ + "/" + self.test_component_compute.expid + "/forcing/component/forcing1")
+        assert os.path.islink(type(self).__name__ + "/" + self.test_component_compute.expid + "/restart/component/restart1")
 
     def tearDown(self):
         """ Clean up small independent tests for a generic ComponentCompute object in the Prepare Phase """
@@ -215,8 +216,8 @@ class TestComponentCompute_Cleanup(TestComponentBase):
         """ Checks if files are generated during the simulation can be copied to the outdata tree """
         test_component_compute = ComponentCompute(parent_dir=self.test_dir, table_dir="component",
                                                   calendar=None)
-        shutil.rmtree(self.test_dir+"/work")
-        shutil.copytree("tests/test_component_minitree_after_work/work", self.test_dir+"/work")
+        shutil.rmtree(self.test_dir+"/"+test_component_compute.expid+"/work")
+        shutil.copytree("tests/test_component_minitree_after_work/work", self.test_dir+"/"+test_component_compute.expid+"/work")
         test_component_compute._cleanup_copy_files(json_dir="tests/test_component_minitree_after_work/")
 
 if __name__ == "__main__":

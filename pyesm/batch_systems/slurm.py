@@ -128,7 +128,7 @@ class Slurm(BatchSystem):
         for key, val in self.submitter_flags.items():
             logging.debug("\t\t - %s: %s", key, val)
 
-        submitter_flags_string = ' '.join("%s=%s" % (key,val) for (key,val) in self.submitter_flags.iteritems())
+        submitter_flags_string = ' '.join("%s=%s" % (key,val) for (key,val) in self.submitter_flags.items())
         submitter_flags_string = submitter_flags_string.replace("=True", "")
         logging.debug("\n\t\t - Finalized submitter flags: %s", submitter_flags_string)
         return submitter_flags_string
@@ -146,7 +146,7 @@ class Slurm(BatchSystem):
         str
             A combination of submitter (sbatch) and submitter_flags
         """
-        return ' '.join([self.submitter, self.construct_submitter_flags(**submitter_flags)])
+        return self.submitter+' '+self.construct_submitter_flags(**submitter_flags)
 
     def construct_execution_command(self, job_ntasks, executable_commands, executable_tasks):
         """
@@ -191,6 +191,6 @@ class Slurm(BatchSystem):
                 hostfile_srun.write(str(current_start) + "-" + str(current_end) + " ./" + this_executable_command + "\n")
             job_ntasks -= this_executable_tasks
             logging.debug("\t\t - Current Start=%s, Current End = %s", current_start, current_end)
-        launcher_flags_string = ' '.join("%s=%s" % (key,val) for (key,val) in self.launcher_flags.iteritems())
+        launcher_flags_string = ' '.join(["%s=%s" % (key,val) for (key,val) in self.launcher_flags.items()])
         launcher_flags_string = launcher_flags_string.replace("=True", "")
         return ' '.join([self.launcher, launcher_flags_string, "--multi-prog", "hostfile_srun"])  

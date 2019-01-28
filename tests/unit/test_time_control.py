@@ -42,6 +42,7 @@ class TestEsmCalendar(unittest.TestCase):
     def test_ESM_Calendar_prev_date(self):
         """ Tests if previous date is correct """
         test_cal = EsmCalendar("18500101", "18510101", "years=1")
+        test_cal.update_dates()
         self.assertEqual(test_cal.previous_date.format("YYYY"), "1849")
         self.assertEqual(test_cal.previous_date.format("MM"), "01")
         self.assertEqual(test_cal.previous_date.format("DD"), "01")

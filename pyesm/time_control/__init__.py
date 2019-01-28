@@ -83,15 +83,15 @@ class EsmCalendar(object):
         self.delta_time = pendulum.duration(**delta_date_dict)
         self.current_date = self.start_date = parse_esm_date_string(self.initial_date)
         self.end_date = self.start_date + self.delta_time
-
+        self.update_dates()
 
     def update_dates(self):
         """ Updates previous_date, previous_run_number, next_date, and next_run_number """
         self.previous_date = self.current_date - self.delta_time
-        self.previous_run_number = self.run_number - 1
+        self.previous_run_number = int(self.run_number) - 1
 
         self.next_date = self.current_date + self.delta_time
-        self.next_run_number = self.run_number + 1
+        self.next_run_number = int(self.run_number) + 1
 
     def __str__(self):
         return self.current_date.format("YYYYMMDD")

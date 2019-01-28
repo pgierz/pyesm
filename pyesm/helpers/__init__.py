@@ -227,6 +227,7 @@ class ComponentFile(object):
         else:
             raise ValueError("`copy_method` needs to be either `copy` or `link`")
         self.src, self.dest, self.copy_method = src, dest, copy_method
+        self._current_location = src
 
     def digest(self):
         """
@@ -237,6 +238,7 @@ class ComponentFile(object):
             self.dest += "/"+os.path.basename(self.src)
         logging.debug("%s".ljust(20), self)
         self.copy_method(self.src, self.dest)
+        self._current_location = self.dest
         logging.debug("...done!")
 
     def __eq__(self, other):
@@ -259,7 +261,8 @@ class ComponentFile(object):
             verb = "copied"
         return "%s -- %s --> %s" % (self.src, verb, self.dest)
 
-    __repr__ = __str__
+    def __repr__(self):
+        return self._current_location
 
 
 class ComponentNamelist(ComponentFile):
@@ -351,13 +354,14 @@ class FileDict(TransformedDict):
         ValueError
             Raised if flag is ``"prepare"`` and new_dest is ``None``
         """
-        for key in self.keys():
+        for key in list(self):
             this_entry = self[key]
             this_entry.digest()
             if flag == "prepare":
                 if new_dest is None:
                     raise ValueError("You must specify a new destination!")
-                this_entry.src, this_entry.dest = this_entry.dest, new_dest
+                self.pop(key)
+                this_entry = ComponentFile(src=this_entry.dest, dest=new_dest)
             elif flag == "work":
                 # Empty out the dictionary during movement from prepare to work.
                 # After the simulation, the cleanup phase will anyway need to use entirely

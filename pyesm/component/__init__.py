@@ -146,10 +146,7 @@ class Component(SimElement):
         #
         # NOTE: You only need to overload the _resolution method, the logging will
         # be taken care of automatically:
-        if resolution is None:
-            self._resolution()
-        else:
-            self._resolution(resolution)
+        self._resolution(resolution)
         self._log_resolution()
         # Set up filetypes with empty lists and generate directories
         self.files = {k: FileDict() for k in self._filetypes}

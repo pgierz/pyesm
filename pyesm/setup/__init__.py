@@ -66,7 +66,7 @@ class SetUp(SimElement):
         super(SetUp, self).__init__()
 
         self.expid = expid
-        self.component_list = components.keys()
+        self.component_list = [*components.keys()]
 
         self._parent_dir = parent_dir
 

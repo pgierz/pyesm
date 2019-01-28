@@ -67,9 +67,10 @@ class test_Slurm(unittest.TestCase):
                             "exclusive": True
                             }
         submitter_flags = test_batch.construct_submitter_flags(**submitter_flag_args)
-        expected_str = "--output=out.$$ --error=out.$$ --partition=mpp --job-name=test_exp --exclusive --account=pgierz --mail-type=FAIL --time=03:00:00 --ntasks=720"
+        expected_str = ["--output=out.$$", "--error=out.$$", "--partition=mpp", "--job-name=test_exp", "--exclusive", "--account=pgierz",
+                        "--mail-type=FAIL", "--time=03:00:00", "--ntasks=720"]
 
-        self.assertEqual(submitter_flags, expected_str)
+        self.assertEqual(set(submitter_flags.split()), set(expected_str))
 
     def test_Slurm_construct_submit_command(self):
         """ Checks if submit command is correct assembled """
@@ -86,7 +87,7 @@ class test_Slurm(unittest.TestCase):
                             }
         submit_command = test_batch.construct_submit_command(**submitter_flag_args)
         expected_str = "sbatch --output=out.$$ --error=out.$$ --partition=mpp --job-name=test_exp --exclusive --account=pgierz --mail-type=FAIL --time=03:00:00 --ntasks=720" 
-        self.assertEqual(submit_command, expected_str)
+        self.assertEqual(set(submit_command.split()), set(expected_str.split()))
 
     def test_Slurm_construct_execution_command(self):
         """ Checks if execution command is correct assembled """
