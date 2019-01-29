@@ -1,4 +1,9 @@
-import mock
+import sys
+# Python 3
+if sys.version_info >= (3, 3):
+    import unittest.mock as mock
+else:
+    import mock
 import socket
 import unittest
 

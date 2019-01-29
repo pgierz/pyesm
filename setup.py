@@ -16,5 +16,10 @@ setup(name='pyesm',
               "f90nml",
               "nco",
               "pendulum",
+              "six",
               ],
+      setup_requires=[
+          'green'
+          ],
+      zip_safe=True
      )

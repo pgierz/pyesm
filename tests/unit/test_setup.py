@@ -1,9 +1,14 @@
 import logging
-import mock
 import shutil
 import socket
 import sys
 import unittest
+
+# Python 3
+if sys.version_info >= (3, 3):
+    import unittest.mock as mock
+else:
+    import mock
 
 from pyesm.setup import SetUp
 from pyesm.setup.setup_simulation import SetUpCompute

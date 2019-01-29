@@ -23,6 +23,8 @@ The following classes are currently implemented
 ----
 """
 
+import six
+
 from pyesm.helpers import SimElement
 
 class SetUp(SimElement):
@@ -66,7 +68,7 @@ class SetUp(SimElement):
         super(SetUp, self).__init__()
 
         self.expid = expid
-        self.component_list = [*components.keys()]
+        self.component_list = [six.iterkeys(components)]
 
         self._parent_dir = parent_dir
 

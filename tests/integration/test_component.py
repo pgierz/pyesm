@@ -34,9 +34,9 @@ class TestComponentCompute_Integration(unittest.TestCase):
         self.test_component_compute.work()
 
     def test_ComponentCompute_cleanup(self):
-        shutil.rmtree(type(self).__name__+"/work")
+        shutil.rmtree(type(self).__name__+"/test/work")
         shutil.copytree("tests/test_component_minitree_after_work/work",
-                        type(self).__name__+"/work", symlinks=True)
+                        type(self).__name__+"/test/work", symlinks=True)
         self.test_component_compute.cleanup()
 
     def test_ComponentCompute_full_cycle(self):

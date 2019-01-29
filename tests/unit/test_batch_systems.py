@@ -1,10 +1,15 @@
 import logging
-import mock
 import os
 import socket
 import subprocess
 import sys
 import unittest
+
+# Python 3
+if sys.version_info >= (3, 3):
+    import unittest.mock as mock
+else:
+    import mock
 
 from pyesm.compute_hosts import Host
 from pyesm.batch_systems import BatchSystem
