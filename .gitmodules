@@ -4,3 +4,6 @@
 [submodule "pyesm/pism"]
 	path = pyesm/pism
 	url = git://github.com/pgierz/pyesm-pism.git
+[submodule "pyesm/vilma"]
+	path = pyesm/vilma
+	url = git://github.com/pgierz/pyesm-vilma.git
