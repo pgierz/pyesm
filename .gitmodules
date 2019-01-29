@@ -1,3 +1,6 @@
 [submodule "pyesm/echam6"]
 	path = pyesm/echam6
 	url = git@github.com:pgierz/pyesm-echam6.git
+[submodule "pyesm/pism"]
+	path = pyesm/pism
+	url = git://github.com/pgierz/pyesm-pism.git
