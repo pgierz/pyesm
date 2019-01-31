@@ -41,6 +41,17 @@ class ComponentCouple(ComponentCompute):
                 self.CDO = cdo.Cdo(logging=True, logFile=self._cdo_stderr)
 
         def prep_recieve(self):
+
+        def finalize_send(self):
+                this_forcing_file = self.files["couple"][self.Type+"_file"]
+                this_griddes = self.files["couple"][self.Type+"_grid"]
+                for regrid_type in [attr for attr in dir(self.CDO) if "gen" in attr if "levelbounds" not in attr]:
+                        logging.debug("Generating grid weights for:", regrid_type)
+                        method_to_generate_this_weight = getattr(self.CDO, regrid_type)
+                        ofile_name = self.couple_dir+"/"+regrid_type+"_weights_for_"+regrid_type
+                        method_to_generate_this_weight(this_griddes, this_forcing_file, ofile_name)
+
+        def prepare_recieve(self):
                 for couple_type in self.__compatible_couple_types:
                     self.files["couple"][couple_type+"_file"] = \
                                     ComponentFile(src=self.couple_dir+"/../"+couple_type+"/"+couple_type+"_file_for_"+self.Type+".nc",
