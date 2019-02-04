@@ -7,5 +7,6 @@
         "operating_system": {"linux": "centos"},
         "partitions": {"compute": "mpp", "post": "smp"},
         "cores": {"compute": 36},
-        "cpus": {"compute": 2}
+        "cpus": {"compute": 2},
+        "pool_directories": {"pool": "/work/ollie/pool", "projects": "/work/ollie/projects"}
 }
