@@ -100,11 +100,11 @@ class ComponentCompute(Component):
         num_threads : int
             The number of threads`
         """
-        self.executeable = None
-        self.command = None
-        self.num_tasks = None
+        self.EXECUTEABLE = None
+        self.COMMAND = None
+        self.NUM_TASKS = None
         # NOTE: I don't know if this is really needed.
-        self.num_threads = None
+        self.NUM_THREADS = None
 
     def _log_compute_requirements(self):
         """ Print out information about the compute requirements """
@@ -112,9 +112,9 @@ class ComponentCompute(Component):
         info_str="compute requirements for " + self.Name
         info_str = " ".join(info_str.split()).upper().center(80)
         logging.info(info_str)
-        logging.info("\n%s will use the executable: \nexecutable=%s", self.Name, self.executeable)
-        logging.info("\n%s will use: \nnum_threads=%s", self.Name, self.num_threads)
-        logging.info("\nThe execution command will be: \ncommand=%s", self.command)
+        logging.info("\n%s will use the executable: \nexecutable=%s", self.Name, self.EXECUTEABLE)
+        logging.info("\n%s will use: \nnum_threads=%s", self.Name, self.NUM_THREADS)
+        logging.info("\nThe execution command will be: \ncommand=%s", self.COMMAND)
         logging.info(80*"-")
     
     def prepare(self, steps=None):
