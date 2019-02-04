@@ -17,6 +17,7 @@ setup(name='pyesm',
               "nco",
               "pendulum",
               "six",
+              "xarray>=0.11.0",
               ],
       setup_requires=[
           'green'
