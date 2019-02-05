@@ -57,8 +57,6 @@ from pyesm.helpers import FileDict, SimElement
 
 DOWNLOAD_ADDRESS = "http://some/address/of/a/project"
 
-logger = logging.set_logging_this_module()
-
 class Component(SimElement):
     """A generic class to hold methods a specific component can overload."""
     NAME = "component"
@@ -132,9 +130,8 @@ class Component(SimElement):
             for example "_outdata_dir", which points to the absolute location
             of the outdata for this specific Component.
         """
-        logger.info(80*"=")
-        logger.info("\n")
         super(Component, self).__init__(parent_dir=parent_dir+"/"+expid)
+        self.logger = logging.set_logging_this_module(log_dir=self.log_dir)
 
         # Set up public attributes
         self.expid = expid
@@ -155,7 +152,6 @@ class Component(SimElement):
             self._register_directory(filetype)
 
         # Set up the logger to log everything to the log/component directory for this particular component:
-        self.logger = logging.set_logging_this_module(log_dir=self.log_dir)
         self.logger.info(80*"=")
         self.logger.info("\n")
         log_str = " ".join((self.Type + "Model: "+ self.Name +" version: "+ self.Version).split()).upper().center(80)
