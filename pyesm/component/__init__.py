@@ -57,6 +57,8 @@ from pyesm.helpers import FileDict, SimElement
 
 DOWNLOAD_ADDRESS = "http://some/address/of/a/project"
 
+logger = logging.set_logging_this_module()
+
 class Component(SimElement):
     """A generic class to hold methods a specific component can overload."""
     NAME = "component"
