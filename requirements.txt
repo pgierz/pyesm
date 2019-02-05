@@ -4,6 +4,7 @@ emoji==0.5.1
 f90nml==1.0.2
 gitdb2==2.0.5
 gitpython==2.1.11
+green==2.13.0
 nco==0.0.3
 numpy==1.16.0
 pandas==0.24.0
