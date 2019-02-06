@@ -1,4 +1,0 @@
-[submodule "pyesm/echam6"]
-	path = pyesm/echam6
-	url = https://github.com/pgierz/pyesm-echam6
-	branch = master
