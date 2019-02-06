@@ -77,6 +77,7 @@ class EsmCalendar(object):
         """
         Initializes a new ``esm_calendar`` object
         """
+        # TODO: rename delta_date to be consistent with the old style.
         self.initial_date, self.final_date, self.delta_date = initial_date, final_date, delta_date
 
         self.run_number = 1
