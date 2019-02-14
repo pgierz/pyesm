@@ -4,23 +4,17 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-coverage = "*"
 green = "*"
 sphinx = "*"
-pycodestyle = "*"
-autopep8 = "*"
-coverage-badge = "*"
 
 [packages]
 pendulum = "*"
-tqdm = "*"
-gitpython = "*"
-emoji = "*"
 f90nml = "*"
 cdo = "*"
 nco = "*"
 xarray = "*"
 six = "*"
+"ruamel.yaml" = "*"
 
 [requires]
 python_version = "2.7"
