@@ -1,3 +1,0 @@
-[submodule "pyesm/components/echam"]
-	path = pyesm/components/echam
-	url = https://github.com/pgierz/pyesm-echam6.git
