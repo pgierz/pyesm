@@ -11,9 +11,10 @@ import os
 import tempfile
 
 # This Library Imports:
-from pyesm.echam6.echam6_simulation import Echam6Compute
-from pyesm.helpers import load_environmental_variable_1_0, ComponentFile, FileDict
-from pyesm.time_control import CouplingEsmCalendar
+from pyesm.components.echam.echam_compute import EchamCompute
+from pyesm.core.helpers import load_environmental_variable_1_0, ComponentFile, FileDict
+from pyesm.core.errors import CouplingError
+from pyesm.core.time_control import CouplingEsmCalendar
 
 # External Imports:
 import cdo
@@ -25,11 +26,11 @@ ACCELERATION_DUE_TO_GRAVITY = 9.81  # m/s**2
 # all the functionality:
 
 
-class Echam6Couple_Ice(Echam6Compute):
+class EchamCouple(EchamCompute):
     """ Contains functionality to cut out ice sheet forcing from ECHAM6 output """
     def __init__(self, **EchamComputeArgs):
         # FIXME: This all belongs in a generalized class, not here...
-        super(Echam6Couple_Ice, self).__init__(**EchamComputeArgs)
+        super(EchamCouple, self).__init__(**EchamComputeArgs)
 
         try:
             assert isinstance(self.calendar, CouplingEsmCalendar)
@@ -37,7 +38,7 @@ class Echam6Couple_Ice(Echam6Compute):
             raise TypeError("You must supply a calendar with coupling functionality: CouplingEsmCalendar, and not %s" % type(self.calendar))
 
         self.files["couple"] = FileDict()
-        self._register_directory("couple", use_Name="generic")
+        self._register_directory("couple", use_name="generic")
 
         self.__cleanup_list = []
         self._cdo_stderr = open(self.couple_dir+"/EchamCouple_Ice_cdo_log", "w")
@@ -63,10 +64,10 @@ class Echam6Couple_Ice(Echam6Compute):
         The following information is included:
         + ...
         """
-        logging.info("\t\t Preparing echam6 file for processing in an ice sheet model...")
+        logging.info("\t\t Preparing %s file for processing in an ice sheet model...", self.NAME)
 
-        start_year = self.calendar.coupling_start_date[self.name].format('YYYY')
-        end_year = self.calendar.coupling_end_date[self.name].format('YYYY')
+        start_year = self.calendar.coupling_start_date[self.NAME].year
+        end_year = self.calendar.coupling_end_date[self.NAME].year
 
         file_list = self._construct_input_list(start_year, end_year)
         files_with_selected_variables = self._select_relevant_variables(file_list)
@@ -125,10 +126,12 @@ class Echam6Couple_Ice(Echam6Compute):
         # FIXME: This depends on how the model is configured to output data.
         # This **SHOULD** be defined somehow in one of the namelists...
         file_list = []
+        logging.debug("Using start_year=%s and end_year=%s", start_year, end_year)
         for year in range(int(start_year), int(end_year)):
-                for month in range(1, 12):
-                        datestamp=str(year).zfill(4)+str(month).zfill(2)
-                        file_list.append(self.outdata_dir+"/"+self.expid+"_echam6_echam_"+datestamp+".grb")
+            for month in range(1, 12):
+                datestamp = str(year).zfill(4)+str(month).zfill(2)
+                file_list.append(self.outdata_dir+"/"+self.expid+"_echam6_echam_"+datestamp+".grb")
+        logging.debug(file_list)
         return file_list
 
     def _select_relevant_variables(self, file_list):
@@ -162,7 +165,7 @@ class Echam6Couple_Ice(Echam6Compute):
         """
         logging.info("\t\t *   selecting relevant variables...")
         files_with_selected_variables = []
-        with tempfile.NamedTemporaryFile() as instruction_file:
+        with tempfile.NamedTemporaryFile('w') as instruction_file:
             # Write instructions to a file:
             instruction_file.write("orog=geosp/%(g)s; \n" % {"g": ACCELERATION_DUE_TO_GRAVITY})
             instruction_file.write("aprt=aprl+aprc; \n")
@@ -186,10 +189,10 @@ class Echam6Couple_Ice(Echam6Compute):
                     for lst in files_with_selected_variables, self.__cleanup_list:
                         lst.append(ofile)
                 else:
-                    logging.warn("\t\t *   WARNING: Not all variables needed were present, skipping %s", this_file)
-                    logging.debug("These were needed: ", required_vars)
-                    logging.debug("These were available: ", vars_in_this_file)
-        if len(files_with_selected_variables) is not 0:
+                    logging.warning("\t\t *   WARNING: Not all variables needed were present, skipping %s", this_file)
+                    logging.warning("These were needed: %s", "\n".join(required_vars))
+                    logging.warning("These were available: %s", "\n".join(vars_in_this_file))
+        if not files_with_selected_variables:
             return files_with_selected_variables
         else:
             raise CouplingError("The filelist you supplied did not contain any information to generate generic ice sheet forcing!")

@@ -34,14 +34,11 @@ import socket
 import sys
 import zipfile
 
-import pyesm.core.logging as logging
-
-logger = logging.set_logging_this_module()
-
-from ruamel.yaml import YAML
-yaml=YAML()
+from ruamel.yaml import YAML, yaml_object
+yaml = YAML()
 
 
+@yaml_object(yaml)
 class Host(object):
     def __init__(self, machine_name=None, batch_system=None):
         """ Determines hostname and sets up attributes
@@ -69,73 +66,55 @@ class Host(object):
         options are possible. The hostname is automatically determined based
         upon ``socket.gethostname``
         """
-        logger.debug(80*"*")
         HOSTNAME = socket.gethostname()
         if machine_name is not None:
             HOSTNAME = machine_name
-        logger.debug("\nInitializing a Host object with attributes for %s", HOSTNAME)
         module_file = inspect.getfile(Host)
         module_directory = os.path.dirname(module_file)
-        parent_egg_module_directory = "/".join(os.path.dirname(module_file).split("/")[:-2])
+        # FIXME: This part is fragile and dependent on the repostory structure!!!
+        parent_egg_module_directory = "/".join(os.path.dirname(module_file).split("/")[:-3])
 
-        logger.debug("Looking for host configuration files in %s", module_directory)
-        logger.debug("All the files are:")
-
-        # Determine what kind of model_directory it actually is:
+        # NOTE: For binary install python packages, you can't just access the
+        # JSON file, since it is in a "python egg" (this behaves like a zipped
+        # directory). To get around this, we check if the module directory we
+        # are currently in is a zipfile or not:
+        #
+        # Determine what kind of module_directory it actually is:
         regular_dir = os.path.isdir(module_directory)
         egg_dir = zipfile.is_zipfile(module_directory)
         parent_egg_dir = zipfile.is_zipfile(parent_egg_module_directory)
 
-        logger.debug("%s is regular_dir? %s", module_directory, regular_dir)
-        logger.debug("%s is egg_dir? %s", module_directory, egg_dir)
-        logger.debug("%s is parent_egg_dir? %s", parent_egg_dir, parent_egg_dir)
-
         if regular_dir:
-                using_egg=False
-                for thisfile in os.listdir(module_directory):
-                        logger.debug("\t\t - %s", thisfile)
-
-                json_files = glob.glob(module_directory+"/*.json")
-                logger.debug("Found these host configuration files:")
-                for json_file in json_files:
-                    logger.debug("\t\t - %s", json_file)
+            using_egg = False
+            json_files = glob.glob(module_directory+"/*.json")
         else:
-                using_egg = True
-                if egg_dir:
-                        zipped_egg_file = zipfile.ZipFile(egg_dir, "r")
-                elif parent_egg_dir:
-                        zipped_egg_file = zipfile.ZipFile(parent_egg_module_directory, "r")
-                else:
-                        raise(OSError)
-                json_files = []
-                for thisfile in zipped_egg_file.namelist():
-                        json_files.append(thisfile)
-                        logger.debug("\t\t - %s", thisfile)
+            using_egg = True
+            if egg_dir:
+                zipped_egg_file = zipfile.ZipFile(egg_dir, "r")
+            elif parent_egg_dir:
+                zipped_egg_file = zipfile.ZipFile(parent_egg_module_directory, "r")
+            else:
+                raise OSError("Could not find:", egg_dir, parent_egg_module_directory)
+            json_files = []
+            for thisfile in zipped_egg_file.namelist():
+                json_files.append(thisfile)
 
         host_file = [f for f in json_files if os.path.basename(f).split(".")[0] in HOSTNAME]
-        logger.debug("After parsing, these host_files exist: %s", host_file)
         assert len(host_file) == 1
         host_file = host_file[0]
 
-        logger.info("\n\t\t - Loading: %s ", host_file)
         if using_egg:
-                host_json = json.loads(zipped_egg_file.read(host_file))
-                self.__dict__.update(host_json)
+            host_json = json.loads(zipped_egg_file.read(host_file))
+            self.__dict__.update(host_json)
         else:
-                with open(host_file) as host_file:
-                        host_json = json.load(host_file)
-                        self.__dict__.update(host_json)
-        yaml.register_class(type(self))
-        yaml.dump(self, sys.stdout)
+            with open(host_file) as host_file:
+                host_json = json.load(host_file)
+                self.__dict__.update(host_json)
 
         # attach the batch system(s)
         if batch_system is None:
             batch_system = host_json["batch_system"]
         importlib.import_module("pyesm.core.batch_systems."+batch_system, batch_system.capitalize())
-        this_batch_system = getattr(sys.modules["pyesm.core.batch_systems."+batch_system], batch_system.capitalize())
-        yaml.register_class(this_batch_system)
+        this_batch_system = getattr(sys.modules["pyesm.core.batch_systems."+batch_system],
+                                    batch_system.capitalize())
         self.batch_system = this_batch_system()
-        yaml.dump(self.batch_system, sys.stdout)
-
-        for key, value in self.__dict__.items():
-            logger.info("\n\t\t %s=%s" % (key, value))

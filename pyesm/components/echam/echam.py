@@ -31,35 +31,35 @@ class Echam(Component):
         self.oceanres = oceanres
 
         self.Resolutions = {
-                    "T31":
-                        {
-                            "res": "T31",
-                            "levels": "L19",
-                            "Timestep": 450,
-                            "_nx": 96,
-                            "_ny": 48,
-                            "_ngridpoints": 96*48,
-                            },
+            "T31":
+                {
+                    "res": "T31",
+                    "levels": "L19",
+                    "Timestep": 450,
+                    "_nx": 96,
+                    "_ny": 48,
+                    "_ngridpoints": 96*48,
+                    },
 
-                    "T63":
-                        {
-                            "res": "T63",
-                            "levels": "L47",
-                            "Timestep": 450,
-                            "_nx": 192,
-                            "_ny": 96,
-                            "_ngridpoints": 192*96,
-                            },
+            "T63":
+                {
+                    "res": "T63",
+                    "levels": "L47",
+                    "Timestep": 450,
+                    "_nx": 192,
+                    "_ny": 96,
+                    "_ngridpoints": 192*96,
+                    },
 
-                    "T127":
-                        {
-                            "res": "T127",
-                            "levels": "L47",
-                            "Timestep": 200,
-                            "_nx": 384,
-                            "_ny": 192,
-                            "_ngridpoints": 384*192,
-                            },
-                      }
+            "T127":
+                {
+                    "res": "T127",
+                    "levels": "L47",
+                    "Timestep": 200,
+                    "_nx": 384,
+                    "_ny": 192,
+                    "_ngridpoints": 384*192,
+                    },
+                }
 
         super(Echam, self).__init__(*args, **kwargs)

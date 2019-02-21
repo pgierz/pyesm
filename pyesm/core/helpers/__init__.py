@@ -11,7 +11,6 @@ from ruamel.yaml import YAML, yaml_object
 import pyesm.core.logging as logging
 
 
-logger = logging.set_logging_this_module()
 yaml = YAML()
 
 
@@ -78,7 +77,7 @@ class SimElement(object):
         if use_name == "name":
             dir_location = "/".join([self._parent_dir, directory_type, self.NAME])
         elif use_name == "generic":
-            dir_location = "/".join([self._parent_dir, directory_type, self.Type])
+            dir_location = "/".join([self._parent_dir, directory_type, self.TYPE])
         elif isinstance(use_name, str) and not use_name == "":
             raise NameError("You must give either 'name' or 'generic'. Recieved %s. This entry is %s for 'name' and %s for 'generic'" %
                             (use_name, use_name == "name", use_name == "generic"))
@@ -87,94 +86,80 @@ class SimElement(object):
 
         setattr(self, directory_type + "_dir", dir_location)
         if not os.path.exists(dir_location):
-            logger.debug("Making directory: %s", str(dir_location))
             os.makedirs(dir_location)
 
     def _call_steps(self, phase, steps):
-            """
-            This method provides the ability to call a list of steps for a
-            simulation, with optional hooks for user-defined methods before and
-            after the built-in ones.
+        """
+        This method provides the ability to call a list of steps for a
+        simulation, with optional hooks for user-defined methods before and
+        after the built-in ones.
 
-            The actual methods of an object called are defined as follows:
-            ``self._<phase>_<order>_<stepname>``
+        The actual methods of an object called are defined as follows:
+        ``self._<phase>_<order>_<stepname>``
 
-            where:
+        where:
 
-            + phase is the name of the current phase passed in to
-              ``_call_steps``. Could be something like "prepare", "work",
-              "cleanup"
-            + order: automatically determined. Steps run in the order: user,
-              default, USER. The "default" is does not need a special name, it is
-              automatically used from the method name, e.g.
-              ``_<phase>_<stepname>``
-            + stepname: the name of the current step from the ``steps`` list.
+        + phase is the name of the current phase passed in to
+          ``_call_steps``. Could be something like "prepare", "work",
+          "cleanup"
+        + order: automatically determined. Steps run in the order: user,
+          default, USER. The "default" is does not need a special name, it is
+          automatically used from the method name, e.g.
+          ``_<phase>_<stepname>``
+        + stepname: the name of the current step from the ``steps`` list.
 
-            Parameters
-            ----------
-            phase : str
-                The "type" of step being preformed, could be something like
-                "prepare", "work", "cleanup"
+        Parameters
+        ----------
+        phase : str
+            The "type" of step being preformed, could be something like
+            "prepare", "work", "cleanup"
 
-            steps : list (or iterable)
-                any iterable of ``str`` that provides method names to be
-                called.
+        steps : list (or iterable)
+            any iterable of ``str`` that provides method names to be
+            called.
 
-            Raises
-            ------
-            NotImplementedError:
-                If a required (non-user-defined) step is missing, a
-                NotImplemented error is raised.
+        Raises
+        ------
+        NotImplementedError:
+            If a required (non-user-defined) step is missing, a
+            NotImplemented error is raised.
 
-            Example
-            -------
+        Example
+        -------
 
-            >>> component._call_steps("example", ["step1", "step2"])
-            calling component._example_user_step1
-            calling component._example_step1
-            calling component._example_USER_step1
-            calling component._example_user_step2
-            calling component._example_step2
-            calling component._example_USER_step2
-            """
-            logger.info(80*"=")
-            log_string = "working on " + phase.replace("_", " ") + " " + self.NAME.replace("_", " ")
-            logger.info(" ".join(log_string.split()).upper().center(80))
-            logger.info("")
-            for step in steps:
-                logger.debug(" ".join(step.replace("_", " ").split()).upper().center(80))
-                for order in ["user", "", "USER"]:
-                    order_str = order if order else "default"
-                    logger.debug(" ".join(order_str.split()).center(80))
-                    thisstep = getattr(self, "_".join(["_", phase, order, step]).replace("__", "_"), None)
-                    thisstep_args = getattr(self, "_".join(["_", phase, order, step, "args"]).replace("__", "_"), None)
-                    thisstep_kwargs = getattr(self, "_".join(["_", phase, order, step, "kwargs"]).replace("__", "_"), None)
+        >>> component._call_steps("example", ["step1", "step2"])
+        calling component._example_user_step1
+        calling component._example_step1
+        calling component._example_USER_step1
+        calling component._example_user_step2
+        calling component._example_step2
+        calling component._example_USER_step2
+        """
+        for step in steps:
+            for order in ["user", "", "USER"]:
+                thisstep = getattr(self, "_".join(["_", phase, order, step]).replace("__", "_"), None)
+                thisstep_args = getattr(self, "_".join(["_", phase, order, step, "args"]).replace("__", "_"), None)
+                thisstep_kwargs = getattr(self, "_".join(["_", phase, order, step, "kwargs"]).replace("__", "_"), None)
 
-                    if thisstep_args is not None:
-                        assert isinstance(thisstep_args, list)
-                    if thisstep_kwargs is not None:
-                        assert isinstance(thisstep_kwargs, dict)
+                if thisstep_args is not None:
+                    assert isinstance(thisstep_args, list)
+                if thisstep_kwargs is not None:
+                    assert isinstance(thisstep_kwargs, dict)
 
-                    logger.debug("%(step)s --> %(thisstep)s", {"step": step, "thisstep": thisstep})
-                    logger.debug("%(step)s args --> %(thisstep_args)s", {"step": step, "thisstep_args": thisstep_args})
-                    logger.debug("%(step)s kwargs --> %(thisstep_kwargs)s ", {"step": step, "thisstep_kwargs": thisstep_kwargs})
 
-                    if order == "":
-                        if not callable(thisstep):
-                            raise NotImplementedError("A required step %s of %s is not implemented!" % (step, phase))
+                if order == "":
+                    if not callable(thisstep):
+                        raise NotImplementedError("A required step %s of %s is not implemented!" % (step, phase))
 
-                    if callable(thisstep):
-                        logger.debug("Calling %s...", thisstep)
-                        if thisstep_args and thisstep_kwargs:
-                            thisstep(*thisstep_args, **thisstep_kwargs)
-                        elif thisstep_args:
-                            thisstep(*thisstep_args)
-                        elif thisstep_kwargs:
-                            thisstep(**thisstep_kwargs)
-                        else:
-                            thisstep()
-                logger.debug(40*"- ")
-            logger.info(80*"=")
+                if callable(thisstep):
+                    if thisstep_args and thisstep_kwargs:
+                        thisstep(*thisstep_args, **thisstep_kwargs)
+                    elif thisstep_args:
+                        thisstep(*thisstep_args)
+                    elif thisstep_kwargs:
+                        thisstep(**thisstep_kwargs)
+                    else:
+                        thisstep()
 
 
 @yaml_object(yaml)
@@ -239,13 +224,10 @@ class ComponentFile(object):
         """
         Uses the ``copy_method`` to copy or link ``src`` to ``dest``.
         """
-        logger.debug("%s.digest() has been called:", __name__)
         if os.path.isdir(self.dest):
             self.dest += "/"+os.path.basename(self.src)
-        logger.debug("%s".ljust(20), self)
         self.copy_method(self.src, self.dest)
         self._current_location = self.dest
-        logger.debug("...done!")
 
     def __eq__(self, other):
         """An equality check method for ComponentFile. Tests if src, dest, and
@@ -305,12 +287,9 @@ class ComponentNamelist(ComponentFile):
 
     def digest(self):
         """ Digest a namelist: write a new namelist object to the dest """
-        logger.debug("%s.digest() has been called:", __name__)
         if os.path.isdir(self.dest):
             self.dest += "/"+os.path.basename(self.src)
-        logger.debug("%s".ljust(20), self)
         self.nml.write(self.dest, force=True)
-        logger.debug("...done!")
 
 
 @yaml_object(yaml)
