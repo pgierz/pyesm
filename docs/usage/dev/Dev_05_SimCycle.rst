@@ -126,7 +126,7 @@ be unique to each component. If you need any specific replacements, you can add
 them to the list. The current replacement rules are summarized in the table:
 
 .. csv-table:: String Interpolation during Cleanup
-   :file: ../../../pyesm/component/component_simulation_replacement_rules.csv
+   :file: ../../../pyesm/core/component/component_simulation_replacement_rules.csv
    :delim: ;
    :widths: auto
    :align: center

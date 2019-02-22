@@ -1,7 +1,7 @@
 Code: ``setup``
 ===============
 
-.. automodule:: pyesm.setup
+.. automodule:: pyesm.core.setup
     :members:
     :private-members:
     :show-inheritance:

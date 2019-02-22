@@ -1,8 +1,10 @@
 Code: ``time_control``
 =======================
 
-.. automodule:: pyesm.time_control
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. automodule:: pyesm.core.time_control
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
+.. uml:: pyesm
+   :classes:
