@@ -15,7 +15,9 @@ yaml = YAML()
 # anyway...
 @yaml_object(yaml)
 class LoadedEnv():
-    """ Loads the environment and stores all keys as attributes of a LoadedEnv instance """
+    """
+    Loads the environment and stores all keys as attributes of a LoadedEnv instance
+    """
     def __init__(self):
         self.__dict__.update(dict(os.environ))
 
@@ -24,10 +26,12 @@ def main():
     """
     Starts a model simulation.
 
-    This contains all the functionality previously found in the esm-runscripts
-    to:
+    This contains new functionality to:
     + Load the environment passed from the shell
-    + Load the appropriate table describing the machine
+
+    This also contains all the functionality previously found in the esm-runscripts
+    to:
+    + Load the appropriate information describing the machine
     + Determine the setup that should be simulated
     + Dynamically loads and initializes this setup
     """

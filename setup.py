@@ -18,6 +18,7 @@ setup(name='pyesm',
               "pendulum",
               "six",
               "xarray>=0.11.0",
+              "ruamel.yaml"
               ],
       setup_requires=[
           'green'
