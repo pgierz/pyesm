@@ -17,7 +17,7 @@ For the class ``Date``:
 import unittest
 import tempfile
 
-from pyesm.core.time_control import EsmCalendar
+from pyesm.core.time_control import EsmCalendar, CouplingEsmCalendar
 from pyesm.core.time_control.esm_calendar import Date
 import pyesm.core.time_control.esm_calendar
 
@@ -41,6 +41,11 @@ class TestEsmCalendar(unittest.TestCase):
         test_cal = EsmCalendar("1850-01-01", "1851-01-01", "0001-00-00")
         self.assertEqual(test_cal.__repr__(), 
                 "EsmCalendar(initial_date=1850-1-1T0:0:0, final_date=1851-1-1T0:0:0, delta_date=1-0-0T0:0:0)")
+    
+    def test_ESM_Calendar_str(self):
+        """ Tests if the str method is useful and makes sense """
+        test_cal = EsmCalendar("1850-01-01", "1851-01-01", "0001-00-00")
+        self.assertEqual(str(test_cal), "Time control for this experiment. current_date=1850-1-1T0:0:0, run_number=1")
 
     def test_ESM_Calendar_read_date_file_missing(self):
         """ Test to make sure ESM Calendar gets correct values if the date file is not there """
@@ -60,12 +65,28 @@ class TestEsmCalendar(unittest.TestCase):
 
     def test_ESM_Calendar_read_date_file(self):
         test_cal = EsmCalendar("1850-01-01", "1855-01-01", "0001-00-00")
-        dummy_date_file = tempfile.TemporaryFile("w")
+        dummy_date_file = open("dummy_date_file", "w")
         dummy_date_file.write("1851-01-01 2")
         dummy_date_file.flush()
-        test_cal.read_date_file(dummy_date_file)
+        test_cal.read_date_file("dummy_date_file")
         self.assertEqual(test_cal.current_date, Date("1851-01-01"))
         self.assertEqual(test_cal.run_number, 2)
+
+    def test_ESM_Calendar_write_date_file(self):
+        test_cal = EsmCalendar("1850-01-01", "1855-01-01", "0001-00-00")
+        # Assume that update dates is called by the simulation at some point:
+        test_cal.update_dates()
+        test_cal.write_date_file("dummy_date_file")
+
+class TestCouplingEsmCalendar(unittest.TestCase):
+    """ Various tests for the Coupling EsmCalendar Time Controller """
+    def test_ESM_Coupling_Calendar_init(self):
+        """ Checks if a Coupling Calendar initializes correctly and has the right attributes """
+        test_cal = CouplingEsmCalendar(initial_date="1850-01-01", final_date="1851-01-01", delta_date="0001-00-00",
+                                       chunk_lengths={
+                                           "echam": "0001-00-00",
+                                           "pism": "0010-00-00",
+                                           "vilma": "0100-00-00"})
 
 class TestFunctions(unittest.TestCase):
     """Tests for functions in esm_calendar"""
