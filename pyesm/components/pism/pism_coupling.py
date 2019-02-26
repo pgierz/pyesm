@@ -35,8 +35,8 @@ class PismCouple(PismCompute, ComponentCouple):
     def __init__(self, **PismComputeArgs):
         super(PismCouple, self).__init__(**PismComputeArgs)
         self.files['couple']['ice_grid'] = ComponentFile(
-                src=self.POOL_DIR + "grids/" + self.Domain + "/pismr_" + self.Domain + "_" + self.LateralResolution + ".griddes",
-                dest=self.couple_dir)
+            src=self.POOL_DIR + "grids/" + self.Domain + "/pismr_" + self.Domain + "_" + self.LateralResolution + ".griddes",
+            dest=self.couple_dir)
 
     ################################################################################
     ################################################################################
@@ -94,16 +94,16 @@ class PismCouple(PismCompute, ComponentCouple):
         if downscale_temp:
             temperature = self._regrid_downscale_temperature(
                 elevation_difference,
-                lapse_rate=os.environ.get("DOWNSCALING_LAPSE_RATE", -0.7))
+                lapse_rate=os.environ.get("DOWNSCALING_LAPSE_RATE", -7.0/1000))
         else:
             temperature = self._regrid_interpolate_bilinear_array("air_temperature")
         if downscale_precip:
             temperature_ref = self._regrid_downscale_temperature(
                     elevation_difference,
-                    lapse_rate=os.environ.get("DOWNSCALING_LAPSE_RATE", -0.7))
+                    lapse_rate=os.environ.get("DOWNSCALING_LAPSE_RATE", -7.0/1000))
             temperature_0 = self._regrid_interpolate_bilinear_array("air_temperature")
             precipitation_0 = self._regrid_interpolate_bilinear_array("precipitation")
-            DOWNSCALING_GAMMA_FACTOR = os.environ.get("DOWNSCALING_LAPSE_RATE", -0.07)
+            DOWNSCALING_GAMMA_FACTOR = os.environ.get("DOWNSCALING_GAMMA_FACTOR", -0.07)
             precipitation = self._regrid_downscale_precipitation(
                     temperature_ref,
                     temperature_0,
@@ -171,16 +171,19 @@ class PismCouple(PismCompute, ComponentCouple):
         ofile.air_temp.attrs['units'] = self.couple_attrs['atmosphere']['air_temperature']['units']
         ofile.precipitation.attrs['units'] = self.couple_attrs['atmosphere']['precipitation']['units']
 
-
         # Fix the time axis; it should be the number of the day in the year
         total_number_of_days_in_this_year = self.calendar.current_date._calendar.day_in_year(self.calendar.current_date.year)
 
         if len(ofile.time) == 1:
-            ofile.time.data[:] = total_number_of_days_in_this_year / 2.0
-            time_bound_array = np.array([1, total_number_of_days_in_this_year])
+            logging.debug("Only one timestep found, assuming time mean!")
+            time_array = np.array([total_number_of_days_in_this_year / 2.0])
+            time_bounds_array = np.array([1, total_number_of_days_in_this_year])
         else:
+            logging.debug("Multiple timesteps found, assuming monthly means!")
             end_day = 0
-            date_list = [self.calendar.coupling_dates[self.NAME]]
+            logging.debug(self.calendar.coupling_dates)
+            date_list = self.calendar.coupling_dates["atmosphere"]
+            logging.debug(date_list)
             time_array = np.empty((len(date_list)*12, 1))
             time_bounds_array = np.empty((len(date_list)*12, 2))
             for year_number, date in enumerate(date_list):
@@ -192,11 +195,14 @@ class PismCouple(PismCompute, ComponentCouple):
                     start_day = 1 + end_day - length_of_this_month
                     time_array[index] = middle_day
                     time_bounds_array[index, 0], time_bounds_array[index, 1] = start_day, end_day
-        ofile.time.data[:] = time_array
-        ofile.time_bounds.data[:] = time_bounds_array
+        #jofile.time.data[:] = time_array
+        ofile = ofile.assign({"time": time_array.squeeze(), "time_bounds": (("time", "nb2"), time_bounds_array.squeeze())})
         # Get time attributes to make sense:
         ofile.time.attrs['units'] = 'days since 0-1-1 00:00:00'
+        logging.debug("Total number of days in year %s = %s, using this as a calendar for the PDD forcing file!",
+                self.calendar.current_date.year, total_number_of_days_in_this_year)
         ofile.time.attrs['calendar'] = str(total_number_of_days_in_this_year)+"_day"
+        ofile.time.attrs['bounds'] = "time_bounds"
         # Save output file:
         encoding_args = {'dtype': 'float32', '_FillValue': -9999}
         ofile.to_netcdf(self.couple_dir+"/atmo_given.nc",
@@ -259,6 +265,8 @@ class PismCouple(PismCompute, ComponentCouple):
                 topg = getattr(ice_dataset, "topg")
                 thk = getattr(ice_dataset, "thk")
                 elevation_hi = topg + thk
+                # For topg plus thk, we also need to mask out all negative values (below sea level)
+                elevation_hi = xr.where(elevation_hi >=0, elevation_hi, 0)
             except AttributeError:
                 raise CouplingError("The PISM input file needs to have usurf or topg and thk!")
         elevation_hi = elevation_hi.mean(dim="time")

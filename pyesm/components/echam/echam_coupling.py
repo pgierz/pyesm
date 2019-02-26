@@ -43,13 +43,14 @@ class EchamCouple(EchamCompute, ComponentCouple):
         """
         logging.info("\t\t Preparing %s file for processing in an ice sheet model...", self.NAME)
 
-        start_year = self.calendar.coupling_start_date[self.NAME].year
-        end_year = self.calendar.coupling_end_date[self.NAME].year
+        start_year = self.calendar.coupling_start_date[self.TYPE].year
+        end_year = self.calendar.coupling_end_date[self.TYPE].year
 
         file_list = self._construct_input_list(start_year, end_year)
         files_with_selected_variables = self._select_relevant_variables(file_list)
 
-        final_output = self._concatenate_files(files_with_selected_variables)
+        final_output = self._concatenate_files(files_with_selected_variables,
+                start_date=self.calendar.coupling_start_date[self.TYPE])
 
         if self.ECHAM_TO_ISM_multiyear_mean:
             final_output = self._multiyear_mean(final_output)
@@ -189,9 +190,14 @@ class EchamCouple(EchamCompute, ComponentCouple):
         logging.critical(files_with_selected_variables)
         raise CouplingError("The filelist you supplied did not contain any information to generate generic ice sheet forcing!")
 
-    def _concatenate_files(self, file_list):
-        logging.info("\t\t *   concatenating files...")
-        return self.CDO.cat(input=file_list, options="-f nc")
+    def _concatenate_files(self, file_list, start_date):
+        logging.info("\t\t *   concatenating files and setting time axis...")
+        tmp = self.CDO.cat(input=file_list, options="-f nc")
+        year, month, day = str(start_date.year).zfill(4), str(start_date.month).zfill(2), str(start_date.day).zfill(2)
+        date = "-".join([year, month, day])
+        ofile = self.CDO.settaxis(date+",00:00:00,+1month", input=tmp, options="-f nc")
+        logging.debug(self.CDO.showtimestamp(input=ofile))
+        return ofile
 
     def _multiyear_mean(self, ifile):
         logging.info("\t\t *   generating multi-year monthly mean...")

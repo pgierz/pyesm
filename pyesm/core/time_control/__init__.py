@@ -75,8 +75,12 @@ class EsmCalendar(object):
         self.end_date = self.start_date.add(self.delta_date)
 
         logging.debug("\nInitialized a ``EsmCalendar`` with the following attributes:")
-        for k, v in self.__dict__.items():
-            logging.debug("%s=%s", k, v)
+        logging.debug("Run Number = %s", self.run_number)
+        logging.debug("Initial Date of the entire experiment = %s", self.initial_date)
+        logging.debug("Final Date of the entire experiment = %s", self.final_date)
+        logging.debug("Delta Date (how long one run will take) = %s", self.delta_date)
+        logging.debug("Current Date (where the experiment currently is) = %s", self.current_date)
+        logging.debug("End Date (where this run will stop before submitting the next one) = %s", self.end_date)
 
     def __str__(self):
         return 'Time control for this experiment. current_date=%s, run_number=%s' % (self.current_date, self.run_number)
@@ -179,14 +183,17 @@ class CouplingEsmCalendar(EsmCalendar):
         self.chunk_lengths = chunk_lengths
         self.chunk_number = {setup: 1 for setup in self.setups}
 
+        self.chunk_lengths = {setup: esm_calendar.Date(self.chunk_lengths[setup]) for setup in self.setups}
+        self.coupling_start_date = {setup: self.start_date for setup in self.setups}
+        self.coupling_end_date = {setup: self.coupling_start_date[setup].add(self.chunk_lengths[setup]) for setup in self.setups}
+
+        self.coupling_dates = {}
         for setup, chunk_length in self.chunk_lengths.items():
-            self.chunk_lengths[setup] = esm_calendar.Date(chunk_length)
-            self.coupling_start_date = {setup: self.start_date}
-            self.coupling_end_date = {
-                setup: self.coupling_start_date[setup].add(self.chunk_lengths[setup])
-                }
-            self.coupling_dates = {setup: self.coupling_start_date[setup].add(esm_calendar.Date.from_list([n, 0, 0, 0, 0, 0]))
-                                   for n in range(self.chunk_lengths[setup].year)}
+            coupling_dates = []
+            for year in range(self.chunk_lengths[setup].year + 1):
+                coupling_dates.append(
+                        self.coupling_start_date[setup].add(esm_calendar.Date.from_list([year, 0, 0, 0, 0, 0])))
+            self.coupling_dates[setup] = coupling_dates
         self.this_setup = self.setups[0]
         # Move the right-most setup to the front:
         self.setups.rotate()
@@ -200,9 +207,13 @@ class CouplingEsmCalendar(EsmCalendar):
         # for the next run!
 
         logging.debug("\nInitialized a ``CouplingEsmCalendar`` with the following attributes:")
-        for key, value in self.__dict__.items():
-            logging.debug("%s=%s", key, value)
-
+        logging.debug("Chunk lengths = %s", self.chunk_lengths)
+        logging.debug("Chunk start dates = %s", self.coupling_start_date)
+        logging.debug("Chunk end dates = %s", self.coupling_end_date)
+        logging.debug("All setup couple dates are: %s", self.coupling_dates)
+        logging.debug("The setup that just finished: %s", self.previous_setup)
+        logging.debug("This setup now simulating: %s", self.this_setup)
+        logging.debug("The setup that will go next: %s", self.next_setup)
 # PG: I'm not sure about this yet...
 #    def write_chunk_file(self, chunk_file, setup_name):
 #        """

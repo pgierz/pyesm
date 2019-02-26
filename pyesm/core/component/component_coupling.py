@@ -220,7 +220,9 @@ def cleanup_after_send(meth):
     """ Cleans up after the send method of a ComponentCouple has been called"""
     def new_meth(*args, **kwargs):
         original_return_value = meth(*args, **kwargs)
+        print("Running digest!")
         args[0].files['couple'].digest()
+        print("Done!")
         for tmpfile in args[0]._cleanup_list:
             os.remove(tmpfile)
         args[0].CDO.cleanTempDir()

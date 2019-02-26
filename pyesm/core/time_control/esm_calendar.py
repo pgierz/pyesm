@@ -400,7 +400,6 @@ class Date(object):
                 minute + \
                 ":" + \
                 second 
-        print(indate)
         return cls(indate)
 
     def __repr__(self):
@@ -439,7 +438,6 @@ class Date(object):
     def __eq__(self, other):
         self_tup = (self.year, self.month, self.day, self.hour, self.minute, self.second)
         other_tup = (other.year, other.month, other.day, other.hour, other.minute, other.second)
-        print(self_tup, other_tup)
         return self_tup == other_tup
 
     def __ne__(self, other):
