@@ -13,7 +13,7 @@ Written by component_cookiecutter
 import logging
 import os
 
-from pyesm.component import Component
+from pyesm.core.component import Component
 
 
 __all__ = ["Pism"]
@@ -49,32 +49,32 @@ class Pism(Component):
 
         Parameters
         ----------
-
-        res_key :: tuple
+        res_key : tuple of (str, int)
                 A tuple describing the domain (as a ``str``), and the lateral
                 resolution of a grid cell edge (as an `int``, in kilometers)
         """
         Resolutions = {None:
-                        {"LateralResolution": None,
-                        "VerticalResolution": None,
-                        "Timestep": None,
-                        "_nx": None,
-                        "_ny": None,
-                        "_nz": None,
-                        "_ngridpoints": None,
-                        },
-                       "nhem":
-                        {20:
-                                {"LateralResolution": "20km",
-                                "VerticalResolution": None,
-                                "Timestep": None,
-                                "_nx": None,
-                                "_ny": None,
-                                "_nz": None,
-                                "_ngridpoints": None,
-                                },
-                        }
-                      }
+                {
+                    "LateralResolution": None,
+                    "VerticalResolution": None,
+                    "Timestep": None,
+                    "_nx": None,
+                    "_ny": None,
+                    "_nz": None,
+                    "_ngridpoints": None,
+                },
+               "nhem":
+                {20:
+                    {"LateralResolution": "20km",
+                     "VerticalResolution": None,
+                     "Timestep": None,
+                     "_nx": None,
+                     "_ny": None,
+                     "_nz": None,
+                     "_ngridpoints": None,
+                    },
+                }
+              }
         domain, resolution = res_key
         setattr(self, "Domain", domain)
         for key, value in Resolutions[domain][resolution].items():

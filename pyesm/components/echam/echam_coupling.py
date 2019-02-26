@@ -1,62 +1,39 @@
 """
 Allows for coupling between ``ECHAM6`` and a **generic ice sheet**
 
-- - - - 
+- - - -
 """
 
 # Standard Library Imports:
-import glob
 import logging
-import os
 import tempfile
 
 # This Library Imports:
+from pyesm.core.component.component_coupling import ComponentCouple, cleanup_after_send, write_couple_vars_to_json 
 from pyesm.components.echam.echam_compute import EchamCompute
-from pyesm.core.helpers import load_environmental_variable_1_0, ComponentFile, FileDict
+from pyesm.core.helpers import load_environmental_variable_1_0, ComponentFile
 from pyesm.core.errors import CouplingError
-from pyesm.core.time_control import CouplingEsmCalendar
 
-# External Imports:
-import cdo
 
 ACCELERATION_DUE_TO_GRAVITY = 9.81  # m/s**2
 
-# Ok, so first we need to find out if this should be a seperate class or just
-# part of something else...  Either way, we can construct an object to contain
-# all the functionality:
 
-
-class EchamCouple(EchamCompute):
+class EchamCouple(EchamCompute, ComponentCouple):
     """ Contains functionality to cut out ice sheet forcing from ECHAM6 output """
+    COMPATIBLE_COUPLE_TYPES = ("ice",)
     def __init__(self, **EchamComputeArgs):
-        # FIXME: This all belongs in a generalized class, not here...
         super(EchamCouple, self).__init__(**EchamComputeArgs)
-
-        try:
-            assert isinstance(self.calendar, CouplingEsmCalendar)
-        except AssertionError:
-            raise TypeError("You must supply a calendar with coupling functionality: CouplingEsmCalendar, and not %s" % type(self.calendar))
-
-        self.files["couple"] = FileDict()
-        self._register_directory("couple", use_name="generic")
-
-        self.__cleanup_list = []
-        self._cdo_stderr = open(self.couple_dir+"/EchamCouple_Ice_cdo_log", "w")
-        self.CDO = cdo.Cdo(logging=True, logFile=self._cdo_stderr)
 
         # Get relevant environmental variables
         self.ECHAM_TO_ISM_multiyear_mean = load_environmental_variable_1_0("ECHAM_TO_ISM_multiyear_mean")
         self.ECHAM_TO_ISM_time_mean = load_environmental_variable_1_0("ECHAM_TO_ISM_time_mean")
 
+    @cleanup_after_send
     def send_ice(self):
         """ Sends a generic atmosphere field for an ice sheet model """
         self._generate_ice_forcing_file()
         self._write_grid_description()
         self._write_variable_description()
-        self.files['couple'].digest()
-        for tmpfile in self.__cleanup_list:
-            os.remove(tmpfile)
-        self.CDO.cleanTempDir()
 
     def _generate_ice_forcing_file(self):
         """Makes a forcing file for an ice sheet.
@@ -93,12 +70,24 @@ class EchamCouple(EchamCompute):
         ofile.flush()
         self.files["couple"]["atmosphere_grid_description"] = ComponentFile(src=ofile.name,
                                                                             dest=self.couple_dir+"/atmosphere.griddes")
-        self.__cleanup_list.append(ofile.name)
+        self._cleanup_list.append(ofile.name)
         logging.info("\t\t ...done!")
 
+    @write_couple_vars_to_json
     def _write_variable_description(self):
         """Writes variable descrptions to a file"""
-        pass
+        return {"air_temperature":
+                {"varname": "temp2",
+                 "units": "K"},
+                "precipitation":
+                {"varname": "aprt",
+                 "units": "kg m-2 s-1"},
+                "orography":
+                {"varname": "orog",
+                 "units": "m"},
+                "shortwave_down":
+                {"varname": "bottom_sw_down",
+                 "units": "W m-2"}}
 
     def _construct_input_list(self, start_year, end_year):
         """
@@ -116,7 +105,7 @@ class EchamCouple(EchamCompute):
         file_list : list
             a list of the files which have been selected for use in coupling
 
-        .. NOTE:: 
+        .. NOTE::
             This method is **very dependent** on how the actual files are
             named, which in turn depends on two things:
             1. What the ``echam6`` namelist is set to
@@ -127,8 +116,10 @@ class EchamCouple(EchamCompute):
         # This **SHOULD** be defined somehow in one of the namelists...
         file_list = []
         logging.debug("Using start_year=%s and end_year=%s", start_year, end_year)
-        for year in range(int(start_year), int(end_year)):
-            for month in range(1, 12):
+        # NOTE: Remember in the range, the end step is NOT-INCLUSIVE. Thus,
+        # plus 1.
+        for year in range(int(start_year), int(end_year)+1):
+            for month in range(1, 13):
                 datestamp = str(year).zfill(4)+str(month).zfill(2)
                 file_list.append(self.outdata_dir+"/"+self.expid+"_echam6_echam_"+datestamp+".grb")
         logging.debug(file_list)
@@ -186,16 +177,17 @@ class EchamCouple(EchamCompute):
                 if set(required_vars).issubset(set(vars_in_this_file)):
                     ofile = self.CDO.exprf(instruction_file.name,
                                            input=this_file, options="-t echam6 -f nc")
-                    for lst in files_with_selected_variables, self.__cleanup_list:
+                    for lst in files_with_selected_variables, self._cleanup_list:
                         lst.append(ofile)
                 else:
                     logging.warning("\t\t *   WARNING: Not all variables needed were present, skipping %s", this_file)
-                    logging.warning("These were needed: %s", "\n".join(required_vars))
-                    logging.warning("These were available: %s", "\n".join(vars_in_this_file))
-        if not files_with_selected_variables:
+                    logging.debug("Skipped file %s", this_file)
+                    logging.debug("These were needed: %s", "\n".join(required_vars))
+                    logging.debug("These were available: %s", "\n".join(vars_in_this_file))
+        if len(files_with_selected_variables) > 0:
             return files_with_selected_variables
-        else:
-            raise CouplingError("The filelist you supplied did not contain any information to generate generic ice sheet forcing!")
+        logging.critical(files_with_selected_variables)
+        raise CouplingError("The filelist you supplied did not contain any information to generate generic ice sheet forcing!")
 
     def _concatenate_files(self, file_list):
         logging.info("\t\t *   concatenating files...")
@@ -203,6 +195,8 @@ class EchamCouple(EchamCompute):
 
     def _multiyear_mean(self, ifile):
         logging.info("\t\t *   generating multi-year monthly mean...")
+        print(self.CDO.ntime(input=ifile))
+        print(self.CDO.showdate(input=ifile))
         return self.CDO.ymonmean(input=ifile, options="-f nc")
 
     def _time_mean(self, ifile):

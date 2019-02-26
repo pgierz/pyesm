@@ -1,7 +1,6 @@
 """
 Module Docstring.,..?
 """
-from collections import namedtuple
 import sys
 
 from ruamel.yaml import YAML, yaml_object
@@ -555,6 +554,39 @@ class Date(object):
     def format(self, form="SELF", ph=False, pm=False, ps=False): # basically format_date
         """
         Needs a docstring!
+        The following forms are accepted:
+        + SELF: uses the format which was given when constructing the date
+        + 0: A Date formated as YYYY
+
+        In [5]: test.format(form=1)
+        Out[5]: '1850-01-01_00:00:00'
+
+        In [6]: test.format(form=2)
+        Out[6]: '1850-01-01T00:00:00'
+
+        In [7]: test.format(form=3)
+        Out[7]: '1850-01-01 00:00:00'
+
+        In [8]: test.format(form=4)
+        Out[8]: '1850 01 01 00 00 00'
+
+        In [9]: test.format(form=5)
+        Out[9]: '01 Jan 1850 00:00:00'
+
+        In [10]: test.format(form=6)
+        Out[10]: '18500101_00:00:00'
+
+        In [11]: test.format(form=7)
+        Out[11]: '1850-01-01_000000'
+
+        In [12]: test.format(form=8)
+        Out[12]: '18500101000000'
+
+        In [13]: test.format(form=9)
+        Out[13]: '18500101_000000'
+
+        In [14]: test.format(form=10)
+        Out[14]: '01/01/1850 00:00:00'
         """
         if form == "SELF":
             form = self._date_format.form
