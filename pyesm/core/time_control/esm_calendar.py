@@ -84,7 +84,7 @@ class Calendar(object):
         (considering leapyears)
     """
     timeunits = ["years", "months", "days", "hours", "minutes", "seconds"]
-    monthnames = ["Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    monthnames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
     def __init__(self, calendar_type=1):
         self.calendar_type = calendar_type
@@ -160,7 +160,7 @@ class Calendar(object):
         Raises
         ------
         TypeError
-            Raised when yougive an incorrect type for month
+            Raised when you give an incorrect type for month
         """
         if isinstance(month, str):
             month = month.capitalize()  # Clean up possible badly formated month
