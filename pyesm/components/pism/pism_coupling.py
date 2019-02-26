@@ -130,43 +130,70 @@ class PismCouple(PismCompute, ComponentCouple):
     def _finalize_forcing_for_PDD(self, temperature, precipitation):
         """
         Finalizes a forcing file for PDD.
+
+        The following steps are preformed here:
+        1. Appropriate units are set for use with PISM's Positive Degree Day
+           (PDD) scheme. Units are converted using the cf_units library. (LINK
+           needed)
+        2. A time axis is generated describing the time for the forcing to be used.
+
+           Note that currently, we assume either a time mean, or monthly means.
+           The time axis is generated such that is always points to days
+           increasing from 0-1-1 00:00:00, in full days. If multiple years are
+           given for coupling, it is assumed that you have given intervals of
+           12 month blocks at a time, and the time axis increases beyond the 1
+           year given.
+
+        Parameters
+        ----------
+        temperature : xr.DataArray
+            A DataArray describing the temperatures to be used by the PDD scheme.
+        precipitation : xr.DataArray
+            A DataArray describing the precipitation to be used by the PDD scheme.
+
+        Returns
+        -------
+        str
+            The path of the finished file is returned as a string, which is
+            later passed further to ComponentFile
+
+        Notes
+        -----
+        We still need to find a solution for multiple year means rather than
+        multiple monthly cycles.
         """
         ofile = xr.Dataset(
-                {
-                    "air_temp": temperature,
-                    "precipitation": precipitation
-                    }
-                )
+            {
+                "air_temp": temperature,
+                "precipitation": precipitation
+                }
+            )
         ofile.air_temp.attrs['units'] = self.couple_attrs['atmosphere']['air_temperature']['units']
         ofile.precipitation.attrs['units'] = self.couple_attrs['atmosphere']['precipitation']['units']
+
+
         # Fix the time axis; it should be the number of the day in the year
         total_number_of_days_in_this_year = self.calendar.current_date._calendar.day_in_year(self.calendar.current_date.year)
-        time_array = np.array([])
-        time_bound_array = np.array([])
+
         if len(ofile.time) == 1:
             ofile.time.data[:] = total_number_of_days_in_this_year / 2.0
             time_bound_array = np.array([1, total_number_of_days_in_this_year])
         else:
-            days_at_start_of_months = [1]
-            day_at_start_of_this_month = 0
-            day_at_middle_of_this_month = 0
-            day_at_middle_of_this_month = 0
-            day_at_end_of_months = [1]
-            for month_name in self.calendar.current_date._calendar.monthnames:
-                length_of_month = self.calendar.current_date._calendar.day_in_month(self.calendar.current_date.year, month_name)
-                day_at_start_of_this_month = days_at_start_of_months[-1]
-                day_at_end_of_this_month = day_at_start_of_this_month + length_of_month
-
-                days_at_start_of_months += day_at_start_of_this_month
-                day_at_middle_of_months += length_of_month / 2
-                days_at_end_of_months += day_at_end_of_this_month
-
-                time_bound_array = np.append(time_bound_array,
-                        [day_at_start_of_month, day_at_end_of_month],
-                        axis=1)
-                time_array = np.append(new_time_array, day_at_middle_of_months)
-            print(new_time_array)
-            ofile.time.data[:] = time_array
+            end_day = 0
+            date_list = [self.calendar.coupling_dates[self.NAME]]
+            time_array = np.empty((len(date_list)*12, 1))
+            time_bounds_array = np.empty((len(date_list)*12, 2))
+            for year_number, date in enumerate(date_list):
+                for index, month_name in enumerate(date._calendar.monthnames):
+                    index += year_number * 12
+                    length_of_this_month = date._calendar.day_in_month(date.year, month_name)
+                    end_day += length_of_this_month
+                    middle_day = end_day - (length_of_this_month / 2)
+                    start_day = 1 + end_day - length_of_this_month
+                    time_array[index] = middle_day
+                    time_bounds_array[index, 0], time_bounds_array[index, 1] = start_day, end_day
+        ofile.time.data[:] = time_array
+        ofile.time_bounds.data[:] = time_bounds_array
         # Get time attributes to make sense:
         ofile.time.attrs['units'] = 'days since 0-1-1 00:00:00'
         ofile.time.attrs['calendar'] = str(total_number_of_days_in_this_year)+"_day"

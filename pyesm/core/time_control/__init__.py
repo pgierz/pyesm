@@ -185,7 +185,8 @@ class CouplingEsmCalendar(EsmCalendar):
             self.coupling_end_date = {
                 setup: self.coupling_start_date[setup].add(self.chunk_lengths[setup])
                 }
-
+            self.coupling_dates = {setup: self.coupling_start_date[setup].add(esm_calendar.Date.from_list([n, 0, 0, 0, 0, 0]))
+                                   for n in range(self.chunk_lengths[setup].year)}
         self.this_setup = self.setups[0]
         # Move the right-most setup to the front:
         self.setups.rotate()
