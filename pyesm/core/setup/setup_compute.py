@@ -28,7 +28,7 @@ class SetUpCompute(object):
     def __init__(self, env):
         self.expid = env.get("EXP_ID", "test")
 
-        calendar = esm_calendar.calendar(calendar_type=1)
+        calendar = esm_calendar.Calendar(calendar_type=1)
 
         initial_date = env.get("INITIAL_DATE", None)
         final_date = env.get("FINAL_DATE", None)
@@ -36,9 +36,11 @@ class SetUpCompute(object):
         initial_date = env.get("INITIAL_DATE_"+self.NAME, initial_date)
         final_date = env.get("FINAL_DATE_"+self.NAME, final_date)
 
-        initial_date = esm_calendar.date(initial_date, calendar)
-        final_date = esm_calendar.date(final_date, calendar)
-
+        print("initial_date=", initial_date)
+        print("final_date=", final_date)
+        initial_date = esm_calendar.Date(initial_date, calendar)
+        final_date = esm_calendar.Date(final_date, calendar)
+        print("Survived generating initial and final date!")
         delta_date = [int(env.get("NYEAR", 0)),
                       int(env.get("NMONTH", 0)),
                       int(env.get("NDAY", 0)),
@@ -46,7 +48,11 @@ class SetUpCompute(object):
                       0,
                       0]
 
+        delta_date = esm_calendar.Date(delta_date) # ...?
+        print("delta_date=", delta_date)
+        
         self.calendar = EsmCalendar(initial_date, final_date, delta_date)
+        print("Survived calendar!")
 
         self.machine = Host(os.environ.get("machine_name"),
                             batch_system=os.environ.get("batch_system", None))

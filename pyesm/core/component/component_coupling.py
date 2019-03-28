@@ -26,7 +26,7 @@ class ComponentCouple(ComponentCompute):
     # Should be a tuple of general types that this component can couple to
     COMPATIBLE_COUPLE_TYPES = ()
 
-    def __init__(self, **ComponentComputeArgs):
+    def __init__(self, other_parent_dirs=None, **ComponentComputeArgs):
         super(ComponentCouple, self).__init__(**ComponentComputeArgs)
 
         try:
@@ -38,6 +38,11 @@ class ComponentCouple(ComponentCompute):
         self._register_directory("couple", use_name="generic")
 
         self.couple_attrs = {}
+        for couple_type in self.COMPATIBLE_COUPLE_TYPES:
+            if couple_type in other_parent_dirs:
+                self.couple_attrs[couple_type] = {"parent_dir": other_parent_dirs[couple_type]}
+            else:
+                self.couple_attrs[couple_type] = {"parent_dir": self._parent_dir}
         self._grid_string = None
         self._cleanup_list = []
         self._cdo_stderr = open(self.couple_dir+"/"+self.NAME+"Couple_cdo_log", "w")
@@ -52,13 +57,13 @@ class ComponentCouple(ComponentCompute):
 
         Parameters
         ----------
-        fin : str ::
-                The filename you want to correct
+        fin : str
+            The filename you want to correct
 
         Returns
         -------
-        fout : str ::
-                The filenmae with the corrected lon/lat dimensionality.
+        fout : str
+            The filenmae with the corrected lon/lat dimensionality.
         """
         ofile = self.NCO.ncpdq(fin, output=fout, arrange=("lat", "lon"))
         print(ofile)
@@ -68,6 +73,13 @@ class ComponentCouple(ComponentCompute):
         pass  # Nothing to do yet...
 
     def send(self):
+        """
+        Calls the send method for each compatiable couple type.
+
+        As an example; if you have a component ``ECHAM6`` of the generic type
+        ``atmosphere`` with compatiabile couple types ['ice'], calling send on
+        your ``ECHAM6`` object would **only** call ``ECHAM6.send_ice()``.
+        """
         for other_model_type in self.COMPATIBLE_COUPLE_TYPES:
             getattr(self, "send_"+other_model_type)()
 
@@ -100,7 +112,7 @@ class ComponentCouple(ComponentCompute):
         Runs specific logic for recieving information
 
         This step calls the method recieve_<other_model_type> (e.g.
-        recieve_atmosphere). THis happens for each generic model type listed in
+        recieve_atmosphere). This happens for each generic model type listed in
         the class level attribute ``COMPATIBLE_COUPLE_TYPES``.
 
         If a method for recieving information for another model has not yet
@@ -125,9 +137,9 @@ class ComponentCouple(ComponentCompute):
         bool
             True if the other model type's couple folder exists, and is not empty.
         """
-        other_model_types_couple_dir = self.couple_dir+"/../"+other_model_type
+        other_model_couple_dir = self.couple_attrs[other_model_type]["parent_dir"]+"/couple/"+other_model_type
         try:
-            return bool(os.listdir(other_model_types_couple_dir))
+            return bool(os.listdir(other_model_couple_dir))
         except:
             return False
 
@@ -150,19 +162,20 @@ class ComponentCouple(ComponentCompute):
         return ",".join([this_model_griddes, weight_file])
 
     def _define_couple_files(self, other_model_type):
-            for other_model_type in self.COMPATIBLE_COUPLE_TYPES:
-                self.files["couple"][other_model_type+"_file"] = \
-                                ComponentFile(src=self.couple_dir+"/../"+other_model_type+"/"+other_model_type+"_file_for_"+self.TYPE+".nc",
+        for other_model_type in self.COMPATIBLE_COUPLE_TYPES:
+            other_model_couple_dir = self.couple_attrs[other_model_type]["parent_dir"]+"/couple/"+other_model_type
+            self.files["couple"][other_model_type+"_file"] = \
+                ComponentFile(src=other_model_couple_dir+"/"+other_model_type+"_file_for_"+self.TYPE+".nc",
                                               dest=self.couple_dir+"/"+"_".join([other_model_type,
                                                                                  "file",
                                                                                  str(self.calendar.current_date.format(form=0))])+".nc")
                 self.files["couple"][other_model_type+"_grid"] = \
-                                ComponentFile(src=self.couple_dir+"/../"+other_model_type+"/"+other_model_type+".griddes",
+                                ComponentFile(src=other_model_couple_dir+"/"+other_model_type+".griddes",
                                               dest=self.couple_dir+"/"+"_".join([other_model_type,
                                                                                  "grid",
                                                                                  str(self.calendar.current_date.format(form=0))]))
                 self.files["couple"][other_model_type+"_vars"] = \
-                                ComponentFile(src=self.couple_dir+"/../"+other_model_type+"/"+other_model_type+"_vars.json",
+                                ComponentFile(src=other_model_couple_dir+"/"+other_model_type+"_vars.json",
                                               dest=self.couple_dir+"/"+"_".join([other_model_type,
                                                                                  "vars",
                                                                                  str(self.calendar.current_date.format(form=0))]))
@@ -173,7 +186,7 @@ class ComponentCouple(ComponentCompute):
 
     def _attach_names(self, other_model_type):
         with open(self.files["couple"][other_model_type+"_vars"]._current_location) as variable_file:
-            self.couple_attrs[other_model_type] = json.load(variable_file)
+            self.couple_attrs[other_model_type].update(json.load(variable_file))
 
     def _remap_forcing_to_thismodel_grid(self, other_model_type, regrid_type="con"):
         """

@@ -9,9 +9,11 @@ Written by component_cookiecutter
 from ruamel.yaml import YAML, yaml_object
 
 from pyesm.core.component.component_compute import ComponentCompute
-from pyesm.core.helpers import ComponentFile
+from pyesm.core.helpers import ComponentFile, ComponentNamelist
 from pyesm.components.echam import Echam
 from pyesm.components.echam.echam_dataset import r0007
+
+import inspect
 
 yaml = YAML()
 
@@ -19,6 +21,7 @@ yaml = YAML()
 @yaml_object(yaml)
 class EchamCompute(Echam, ComponentCompute):
     """ A docstring. Please fill this out at least a little bit """
+    _ECHAM_MODULE_ROOT = inspect.getfile(Echam)
 
     def __init__(self,
                  dataset=r0007,
@@ -83,7 +86,46 @@ class EchamCompute(Echam, ComponentCompute):
                         src=self.pool_dir+current_file,
                         dest=getattr(self, filetype+"_dir"))
 
+    def _prepare_read_namelist(
+            self,
+            NAMELIST_DIR_echam=self._ECHAM_MODULE_ROOT+"/"+self.VERSION+"/"+self.SCENARIO+"/"
+            ):
+        """
+        Gets the namelist to be used for the experiment.
 
+        This method gets the namelists needed for this experiment. They are
+        modified with default values in the step `_prepare_configure_namelist`
+        and then modified a second time for experiement specific steps in
+        `_prepare_modify_namelist`.
+
+        Parameters
+        ----------
+        NAMELIST_DIR_echam : <PYESM_ROOT>/components/echam/
+            Defaults to None. This is the string pointing to the directory
+            where the namelist should be found.
+        """
+        self.files['config']['namelist.echam'] = ComponentNamelist(
+                src=NAMELIST_DIR_echam+"namelist.echam",
+                dest=self.config_dir)
+
+    def _prepare_configure_namelist(self):
+        """
+        Provides some default configurations for a ``namelist.echam`` file.
+
+        This method does standard processing for a ``namelist.echam`` file
+        during a running simulation. Any user-specific configuration occurs in
+        a different step; _prepare_modify_namelist.
+        """
+        namelist = self.files['config']['namelist.echam']
+        # The namelist should *hopefully* be a f90nml object?
+        #
+        # Stuff in runctl:
+        namelist['runctl']['out_expname'] = self.expid
+        namelist['runctl']['dt_start'] = self.calendar.start_date
+        namelist['runctl']['dt_stop'] = self.calendar.end_date
+        namelist['runctl']['dt_resume'] = self.calendar.start_date # ..?? What needs to go here?
+        namelist['runctl']['lresume'] = self.is_restart #...? Probably should point to ``True`` or ``False``
+        namelist['runctl']['out_datapath'] = self.work_dir
 
 
 

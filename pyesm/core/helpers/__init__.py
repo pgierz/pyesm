@@ -316,7 +316,7 @@ class TransformedDict(collections.MutableMapping):
         return len(self.store)
 
     def _check_value(self, value):
-        if not isinstance(value, ComponentFile):
+        if not (isinstance(value, ComponentFile) or isinstance(value, ComponentNamelist)):
             raise TypeError
         return value
 

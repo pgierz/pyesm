@@ -328,6 +328,7 @@ class Date(object):
         elif date_seperator == "" and time_seperator == "":
             form = 9
 
+        print("ndate=", ndate)
         self.year, self.month, self.day, self.hour, self.minute, self.second = map(int, ndate)
 
         self._date_format = Dateformat(form, printhours, printminutes, printseconds)
