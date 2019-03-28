@@ -26,10 +26,10 @@ class Echam(Component):
     VERSION = "6.3.04p1"
     TYPE = "atmosphere"
 
-    def __init__(self, is_coupled=True, oceanres=None, *args, **kwargs):
+    def __init__(self, is_coupled=True, oceanres=None, scenario=None, *args, **kwargs):
         self.is_coupled = is_coupled
         self.oceanres = oceanres
-
+        self.SCENARIO = scenario
         self.Resolutions = {
             "T31":
                 {

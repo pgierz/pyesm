@@ -66,9 +66,9 @@ class EsmCalendar(object):
         current run number.
     """
     def __init__(self, initial_date, final_date, delta_date):
-        self.initial_date = esm_calendar.Date(initial_date)
-        self.final_date = esm_calendar.Date(final_date)
-        self.delta_date = esm_calendar.Date(delta_date)
+        self.initial_date = initial_date
+        self.final_date = final_date
+        self.delta_date = delta_date
 
         self.run_number = 1
         self.current_date = self.start_date = self.initial_date

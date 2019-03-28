@@ -226,9 +226,8 @@ class Date(object):
     -------
     """
     def __init__(self, indate, calendar=Calendar()):
-        # NOTE: The notes in this function are for complete idiots. I went
-        # through and turned Python into English. Maybe it is helpful for
-        # someone else.
+        # NOTE: I went through and turned Python into English. Maybe it is
+        # helpful for someone else.
         printhours = True
         printminutes = True
         printseconds = True

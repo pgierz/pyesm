@@ -13,7 +13,10 @@ from pyesm.core.helpers import ComponentFile, ComponentNamelist
 from pyesm.components.echam import Echam
 from pyesm.components.echam.echam_dataset import r0007
 
+from pkg_resources import resource_filename, resource_string
 import inspect
+import os
+import sys
 
 yaml = YAML()
 
@@ -21,7 +24,6 @@ yaml = YAML()
 @yaml_object(yaml)
 class EchamCompute(Echam, ComponentCompute):
     """ A docstring. Please fill this out at least a little bit """
-    _ECHAM_MODULE_ROOT = inspect.getfile(Echam)
 
     def __init__(self,
                  dataset=r0007,
@@ -32,6 +34,8 @@ class EchamCompute(Echam, ComponentCompute):
         self.oceres = "GR15"  # TODO: We need to get this from the environment...
         self.dataset = dataset(self.res, self.levels, self.oceres)
         self.pool_dir = self.machine.pool_directories['pool']+"/ECHAM6/"
+
+        self._default_prepare_steps = ["read_from_dataset", "read_namelist", "configure_namelist", "copy_files_to_exp_tree"]
 
     def _compute_requirements(self):
         """ Compute requirements for echam6 """
@@ -80,7 +84,7 @@ class EchamCompute(Echam, ComponentCompute):
             if hasattr(self.dataset, filetype+"_in_pool"):
                 files_for_this_year = self.dataset.find(
                     filetype=filetype+"_in_pool",
-                    year=self.calendar.current_date.date[0])
+                    year=self.calendar.current_date.year)
                 for human_readable_name, current_file in files_for_this_year:
                     self.files[filetype][human_readable_name] = ComponentFile(
                         src=self.pool_dir+current_file,
@@ -88,7 +92,7 @@ class EchamCompute(Echam, ComponentCompute):
 
     def _prepare_read_namelist(
             self,
-            NAMELIST_DIR_echam=self._ECHAM_MODULE_ROOT+"/"+self.VERSION+"/"+self.SCENARIO+"/"
+            NAMELIST_DIR_echam=None
             ):
         """
         Gets the namelist to be used for the experiment.
@@ -104,8 +108,11 @@ class EchamCompute(Echam, ComponentCompute):
             Defaults to None. This is the string pointing to the directory
             where the namelist should be found.
         """
+        if not NAMELIST_DIR_echam:
+             NAMELIST_DIR_echam = "/namelists/"+self.VERSION+"/"+self.SCENARIO+"/"
+        namelist_echam = resource_filename(__name__, NAMELIST_DIR_echam+'namelist.echam')
         self.files['config']['namelist.echam'] = ComponentNamelist(
-                src=NAMELIST_DIR_echam+"namelist.echam",
+                src=namelist_echam,
                 dest=self.config_dir)
 
     def _prepare_configure_namelist(self):
@@ -116,30 +123,14 @@ class EchamCompute(Echam, ComponentCompute):
         during a running simulation. Any user-specific configuration occurs in
         a different step; _prepare_modify_namelist.
         """
-        namelist = self.files['config']['namelist.echam']
-        # The namelist should *hopefully* be a f90nml object?
+        # The nml attribute of the ComponentNamelist points to an editable
+        # container with the namelist entries:
+        namelist = self.files['config']['namelist.echam'].nml
         #
         # Stuff in runctl:
         namelist['runctl']['out_expname'] = self.expid
-        namelist['runctl']['dt_start'] = self.calendar.start_date
-        namelist['runctl']['dt_stop'] = self.calendar.end_date
-        namelist['runctl']['dt_resume'] = self.calendar.start_date # ..?? What needs to go here?
-        namelist['runctl']['lresume'] = self.is_restart #...? Probably should point to ``True`` or ``False``
+        # This will depend on the restart frequency:
+        namelist['runctl']['dt_start'][0] = self.calendar.start_date.year
+        namelist['runctl']['dt_stop'][0] = self.calendar.end_date.year
+        namelist['runctl']['lresume'] = False # Need something like self.is_restart...? Probably should point to ``True`` or ``False``
         namelist['runctl']['out_datapath'] = self.work_dir
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

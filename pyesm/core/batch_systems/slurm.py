@@ -9,7 +9,10 @@ import subprocess
 
 from . import BatchSystem
 
+from ruamel.yaml import YAML, yaml_object
+yaml = YAML()
 
+@yaml_object(yaml)
 class Slurm(BatchSystem):
     def __init__(self, account=None):
         """ Constructs a ``Slurm`` object with the functionality of ``BatchSystem``

@@ -79,7 +79,6 @@ class Dataset(object):
         # https://realpython.com/introduction-to-python-generators/
         filetype_dict = getattr(self, filetype)
         for human_readable_name, file_dict in filetype_dict.items():
-            print(" ".join([human_readable_name, "is a", filetype, "file"]))
             for key, value in file_dict.items():
                 if check_year(year, value["from"], value["to"]):
                     yield human_readable_name, key.replace("@YEAR@", str(year))
@@ -169,14 +168,14 @@ class r0007(Dataset):
                            "/solar_irradiance/swflux_14band_@YEAR@.nc" :  {"from": 1851, "to": float("inf")},
                           },
 
-            "histvolcir": {"/"+self.res+"/volcano_aerosols/strat_aerosols_ir_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosols_ir_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosols_ir_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
+            "histvolcir": {"/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
                           },
 
-            "histvolcsw": {"/"+self.res+"/volcano_aerosols/strat_aerosols_sw_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosols_sw_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosols_sw_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
+            "histvolcsw": {"/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
                           },
 
             "piaerocoarse": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_coa.nc" : {"from": float("-inf"), "to": float("inf")}},

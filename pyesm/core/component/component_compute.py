@@ -42,7 +42,7 @@ class ComponentCompute(Component):
     Contains elements of a Component related to actually running a simulation
     """
 
-    def __init__(self, table_dir=None, calendar=None, machine=None, *Component_args, **Component_kwargs):
+    def __init__(self, calendar=None, machine=None, *Component_args, **Component_kwargs):
         """ Initialization of a Compute part for a Component with phase
         instructions for prepare, work, and cleanup.
 
@@ -66,8 +66,6 @@ class ComponentCompute(Component):
         ----------
         calendar : ESMCalendar
             The parameter passed in during initialization is attached to the object.
-        _table_dir : str
-            The directory where JSON filetables are read from.
         executable : str
             The name of the executable
         command : str
@@ -82,7 +80,6 @@ class ComponentCompute(Component):
         self.machine = machine or Host()
         # FIXME: This needs to point to whatever the module directory is...
 
-        self._table_dir = table_dir or "."
         self._register_directory("work", use_name=False)
         self._compute_requirements()
 
@@ -136,144 +133,8 @@ class ComponentCompute(Component):
             method to perform one of these steps, it should have the definition
             ``_prepare_<step_name>``
         """
-        if using_JSON_tables:
-            default_steps = ["read_filetables", "modify_filetables", "override_filetables_from_env",
-                          "copy_files_to_exp_tree", "modify_files"]
- 
         steps = steps or self._default_prepare_steps
         self._call_steps(phase="prepare", steps=steps)
-
-    def _read_filetables(self, json_dir, tag, name=None):
-        """
-        A small helper method to load a JSON file which contains a list of all the files
-        used during simulation execution.
-
-        _read_filetables is a helper method. Here, you can define files needed by your
-        simulation for each of the pre-defined filetypes. Currently, if you need a filetype
-        that is not implemented, an KeyError is raised.
-
-        The JSON file contains a collection of dicts which can can take either
-        lists or dicts as **values**.
-
-            + Lists: You must give a list of the form [src, dest, link], which will then be
-                     given to the ComponentFile. Omitting entries is allowed, so you can,
-                     for example, only give src. However, the order cannot change.
-            + Dicts: You must give a dict of the form:
-                     {"src": srcfile, "dest": destfile, "copy_method": "link"}.
-                     Here, you can omit the dest and only give, for example, src and
-                     copy_method
-
-        The **keys** will be conform to the old-style ESM variable names, in such a way
-        you can overload the keys from the os.environ dictionary.
-
-        The filetable to be read will have a name defined by the arguments
-        NAME, Version, and tag. For example, given a Component with following
-        attributes:
-
-        >>> my_component = Component()
-        >>> my_component.NAME
-        Component
-        >>> my_component.Version
-        0.0.0
-
-        a filetable would be read like this:
- 
-        >>> tag = "example"
-        >>> my_component._read_filetables(json_dir=".", tag)
-        Loaded files for Component from JSON Table ./Component_0.0.0_example_files.json
-
-        Parameters
-        ----------
-        json_dir : str
-            The directory where the table should be loaded from
-        tag : str
-            The type of files to load, usually one of ``prepare``, ``work``, or ``cleanup``
-        """
-        # Read the JSON into a flat dictionary, which can be overriden by user supplied
-        # variables ("new" runscript) or environmental variables ("old" runscript)
-        #
-        # FIXME: Here we need something that controls preferrence of JSON vs
-        # YAML vs something else...  Alternatively, we need an entirely second
-        # _read_filetables function, and seperate based upon the method name,
-        #
-        assert isinstance(json_dir, str)
-        if json_dir[-1] != "/":
-            json_dir += "/"
-
-        if name is None:
-            name = "_".join([self.NAME, self.Version, tag, "files.json"])
-        data_file_string = json_dir + name 
-        with open(data_file_string) as data_file:
-            table_files = json.load(data_file)
-
-        for filetype, entrylist in table_files.items():
-            if filetype in self.files.keys():
-                for entry in entrylist:
-                    #
-                    # NOTE: Here, we check if the JSON file was interpreted as
-                    # a ``list`` or as a ``dict``. In the case of ``list``, we
-                    # **assume the user was smart** and got the argument order
-                    # correct in order to construct a valid ComponentFile
-                    #
-                    # The ``dict`` case forces the use of kwargs for
-                    # ComponentFile, and ensures that errors will be raised if
-                    # the arguments have an incorrect form.
-                    #
-                    if isinstance(entrylist[entry], list):
-                        self.files[filetype].update({entry: ComponentFile(*entrylist[entry])})
-                    elif isinstance(entrylist[entry], dict):
-                        self.files[filetype].update({entry: ComponentFile(**entrylist[entry])})
-                    else:
-                        raise TypeError("You are tying to use _read_filetables to put data into ComponentFile; only list or dict are allowed!")
-            else:
-                raise KeyError("Invalid key: %s. You must give one of %s in your JSON file %s" % (filetype, self._filetypes, data_file_string))
-
-    def _prepare_read_filetables(self, json_dir=None):
-        """
-        Reads in the default fileset
-
-        Here, the default FileDicts are read in from a JSON file. See the accompanying
-        documentation for _read_filetables for more information on how such a filetable should
-        be constructed.
-
-        Parameters
-        ----------
-        json_dir : str, optional
-            Default is ``None``. Here, you can overload where the table should
-            be read from. Otherwise, the object attribute ``_table_dir`` is
-            used.
-        """
-        if json_dir is None:
-            json_dir = self._table_dir
-
-        self._read_filetables(json_dir, "prepare_default")
-
-    def _prepare_modify_filetables(self, json_dir=None):
-        """
-        Modifies the default fileset
-
-        Here, it is possible to modify the FileDict that are read from the JSON file in the
-        previous step. At this point, you would redefine things like:
-
-            + Which restart file you **currently** want to use
-
-            + A forcing file which always needs to have the same name
-              in the working directory but needs a different source for
-              each run
-
-        Parameters
-        ----------
-        json_dir : str, optional
-            Default is ``None``. Here, you can overload where the table should
-            be read from. Otherwise, the object attribute ``_table_dir`` is
-            used.
-        """
-        if json_dir is None:
-            json_dir = self._table_dir
-
-        if os.path.exists("/".join([json_dir, "_".join([self.NAME, self.Version,
-                                                        "prepare_modify", "files.json"])])):
-            self._read_filetables(json_dir, "prepare_modify")
 
     def _prepare_override_filedicts_from_env(self):
         """

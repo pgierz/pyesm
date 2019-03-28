@@ -1,1 +1,1 @@
-recursive-include pyesm *.json *.csv
+recursive-include pyesm *.json *.csv namelist.*

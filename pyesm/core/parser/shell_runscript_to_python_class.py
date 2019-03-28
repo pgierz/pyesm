@@ -3,6 +3,9 @@ Main wrapper to get an old-style esm runscript going with the python backend.
 """
 import os
 import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 from ruamel.yaml import YAML, yaml_object
 
@@ -42,8 +45,9 @@ def main():
     this_setup = os.environ.get("setup_name")
     this_setup = dynamically_load_and_initialize_setup(this_setup, this_env.__dict__)
     print("#"*80)
-    this_setup.echam._prepare_read_from_dataset()
-    yaml.dump(this_setup.echam.files, sys.stdout)
+    print("Calling all PREPARE steps")
+    this_setup._call_phase("prepare")
+    print("done")
 
 if __name__ == "__main__":
     main()

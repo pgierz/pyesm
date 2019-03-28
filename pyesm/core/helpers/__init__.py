@@ -152,6 +152,7 @@ class SimElement(object):
                         raise NotImplementedError("A required step %s of %s is not implemented!" % (step, phase))
 
                 if callable(thisstep):
+                    logging.debug("Calling %s", thisstep)
                     if thisstep_args and thisstep_kwargs:
                         thisstep(*thisstep_args, **thisstep_kwargs)
                     elif thisstep_args:
@@ -282,6 +283,8 @@ class ComponentNamelist(ComponentFile):
         """
         super(ComponentNamelist, self).__init__(src, dest, copy_method)
 
+        # NOTE: See documentation for f90nml here:
+        # https://f90nml.readthedocs.io/en/latest/
         parser = f90nml.Parser()
         self.nml = parser.read(self.src)
 
@@ -289,6 +292,8 @@ class ComponentNamelist(ComponentFile):
         """ Digest a namelist: write a new namelist object to the dest """
         if os.path.isdir(self.dest):
             self.dest += "/"+os.path.basename(self.src)
+        # By default, write will not overwrite an existing file. To override
+        # this, use the force flag.
         self.nml.write(self.dest, force=True)
 
 
