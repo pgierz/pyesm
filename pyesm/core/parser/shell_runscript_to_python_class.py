@@ -14,7 +14,7 @@ from pyesm.core.dark_magic import dynamically_load_and_initialize_setup
 yaml = YAML()
 
 
-# NOTE: Not sure why this is needed, since we have os.environ available to us
+# NOTE: Not sure if this is needed, since we have os.environ available to us
 # anyway...
 @yaml_object(yaml)
 class LoadedEnv():
