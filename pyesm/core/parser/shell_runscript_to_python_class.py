@@ -42,12 +42,14 @@ def main():
 
     yaml.dump(this_env, sys.stdout)
 
-    this_setup = os.environ.get("setup_name")
+    this_setup = os.environ.get('setup_name')
     this_setup = dynamically_load_and_initialize_setup(this_setup, this_env.__dict__)
-    print("#"*80)
-    print("Calling all PREPARE steps")
-    this_setup._call_phase("prepare")
-    print("done")
+    print('#'*80)
+    this_setup.echam._prepare_files_from_restart_in()
+    print(this_setup.echam.files['restart'])
+    #print('Calling all PREPARE steps')
+    #this_setup._call_phase('prepare')
+    print('done')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
