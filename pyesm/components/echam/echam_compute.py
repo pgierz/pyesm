@@ -1,10 +1,14 @@
 """
 Compute and Post-Processing Jobs for echam6
 
-Written by component_cookiecutter
+This module contains classes used to set up EchamCompute and
+EchamPostprocessing objects. All classes inherit from the base Echam class, and
+depending on their purpose, ComponentCompute or ComponentPostprocess
 
 ----
 """
+import os
+from pkg_resources import resource_filename
 
 from ruamel.yaml import YAML, yaml_object
 
@@ -13,10 +17,6 @@ from pyesm.core.helpers import ComponentFile, ComponentNamelist
 from pyesm.components.echam import Echam
 from pyesm.components.echam.echam_dataset import r0007
 
-from pkg_resources import resource_filename, resource_string
-import inspect
-import os
-import sys
 
 yaml = YAML()
 
@@ -35,7 +35,15 @@ class EchamCompute(Echam, ComponentCompute):
         self.dataset = dataset(self.res, self.levels, self.oceres)
         self.pool_dir = self.machine.pool_directories['pool']+"/ECHAM6/"
 
-        self._default_prepare_steps = ["read_from_dataset", "read_namelist", "configure_namelist", "copy_files_to_exp_tree"]
+        self._default_prepare_steps = [
+            "files_from_dataset",
+            "files_from_restart_in",
+            "configure_files_default",
+            "configure_files_user",
+            "read_namelist",
+            "configure_namelist_default",
+            "configure_namelist_user",
+            "copy_files_to_exp_tree"]
 
     def _compute_requirements(self):
         """ Compute requirements for echam6 """
@@ -46,15 +54,18 @@ class EchamCompute(Echam, ComponentCompute):
         # dictionary is the resolution, the dictionary key of the **inter**
         # dictionary is the number of nodes needed. The hostname decides how
         # many cores per compute node exit.
-        self.__nnodes = {"T63": {36: 12, 24: 18}}[self.res]
-        self.__nproca = {"T63": {36: 24, 24: 24}}[self.res]
-        self.__nprocb = {"T63": {36: 18, 24: 18}}[self.res]
-        self.__num_tasks = None
-        self.__num_threads = None
+        self._nnodes = {"T63": {36: 12, 24: 18}}[self.res]
+        self._nproca = {"T63": {36: 24, 24: 24}}[self.res]
+        self._nprocb = {"T63": {36: 18, 24: 18}}[self.res]
+        self._num_tasks = None
+        self._num_threads = None
 
-    def _prepare_read_from_dataset(self):
+    def _prepare_files_from_dataset(self):
         """
         Uses the Dataset to populate the appropriate file dictionaries.
+
+        This replaces the normal steps for files_from_forcing_in and
+        files_from_input_in.
 
         For each file type described in the Dataset, the current year is used
         to determine the appropriate file to copy from the pool directory. The
@@ -74,6 +85,14 @@ class EchamCompute(Echam, ComponentCompute):
             + The current year is determined by ``EchamCompute``'s calendar
               attribute, which has an attribute ``current_date.date``. Entry 0 is the
               year.
+
+        The Dataset currently implements paths for the following filetypes:
+        + ``forcing``
+        + ``input``
+
+        The restart filetype dictionary is propulated in
+        _prepare_files_from_restart_in
+
 
         See Also
         --------
@@ -106,31 +125,90 @@ class EchamCompute(Echam, ComponentCompute):
         ----------
         NAMELIST_DIR_echam : <PYESM_ROOT>/components/echam/
             Defaults to None. This is the string pointing to the directory
-            where the namelist should be found.
+            where the namelist should be found. If possible, this is retrieved
+            from the environment.
         """
         if not NAMELIST_DIR_echam:
-             NAMELIST_DIR_echam = "/namelists/"+self.VERSION+"/"+self.SCENARIO+"/"
+             NAMELIST_DIR_echam = os.environ.get(
+                     'NAMELIST_DIR_echam',
+                     '/namelists/'+self.VERSION+'/'+self.SCENARIO+'/')
         namelist_echam = resource_filename(__name__, NAMELIST_DIR_echam+'namelist.echam')
         self.files['config']['namelist.echam'] = ComponentNamelist(
                 src=namelist_echam,
                 dest=self.config_dir)
 
-    def _prepare_configure_namelist(self):
+    def _prepare_configure_namelist_default(self):
         """
         Provides some default configurations for a ``namelist.echam`` file.
 
         This method does standard processing for a ``namelist.echam`` file
-        during a running simulation. Any user-specific configuration occurs in
-        a different step; _prepare_modify_namelist.
+        during which will be used running simulation. Any user-specific
+        configuration occurs in a different step; _prepare_modify_namelist.
+
+        Some of the settings chosen depend on the compute host configuration
+        (attached to ComponentCompute classes as self.machine) as well as the
+        resolution.
         """
+        ######################################################################
         # The nml attribute of the ComponentNamelist points to an editable
-        # container with the namelist entries:
+        # dictionary-like container with the namelist entries:
         namelist = self.files['config']['namelist.echam'].nml
+
+        ######################################################################
+        # Changes in runctl:
         #
-        # Stuff in runctl:
         namelist['runctl']['out_expname'] = self.expid
-        # This will depend on the restart frequency:
-        namelist['runctl']['dt_start'][0] = self.calendar.start_date.year
-        namelist['runctl']['dt_stop'][0] = self.calendar.end_date.year
-        namelist['runctl']['lresume'] = False # Need something like self.is_restart...? Probably should point to ``True`` or ``False``
+        # dt_start, dt_stop and dt_resume point to "$pseudo_date_start_echam",
+        # "$pseudo_date_end_echam", and "$pseudo_date_resume_echam"
+        #
+        # Unfortunately the shell version doesn't really explain what these
+        # are, so just placeholder strings for now to demonstrate that
+        # namelists can be changed:
+        namelist['runctl']['dt_start'] = self.calendar.start_date.year
+        namelist['runctl']['dt_stop'] = self.calendar.end_date.year
+        namelist['runctl']['dt_resume'] = self.calendar.start_date.year
+        # Get lresume from the environment; and cast to boolean since it
+        # probably is a "1" or "0" string:
+        if self.calendar.run_number > 1:
+            lresume_in_namelist = True
+        else:
+            lresume_in_namelist = bool(os.environ.get("LRESUME_echam", False))
+        namelist['runctl']['lresume'] = lresume_in_namelist
         namelist['runctl']['out_datapath'] = self.work_dir
+        namelist['runctl']['lcouple'] = self.is_coupled
+        # Allow for 6-hourly output:
+        if os.environ.get("OUTPUT6H_echam", None):
+            namelist['runctl']['putdata'] = [6, 'hours', 'last', 0]
+        # TODO:
+        # namelist['runctl']['putrerun']
+        # namelist['runctl']['delta_time']
+
+        ######################################################################
+        # Changes in parctl
+        #
+        # We get _nproca and _nprocb attributes (defined in the compute
+        # requirements), and determine the values we need based upon the number
+        # of cores available on the compute nodes (defined in compute_host
+        # configuration file)
+        namelist['parctl']['nproca'] = self._nproca[self.machine.cores]
+        namelist['parctl']['nprocb'] = self._nprocb[self.machine.cores]
+
+
+        ######################################################################
+        # Changes in radctl
+        #
+        # Allow for user defined greenhouse gas values:
+        for ghg_in_env, ghg_in_namelist in zip(
+                ["CO2_echam", "CH4_echam", "N2O_echam"],
+                ['co2vmr', 'ch4vmr', 'n2ovmr']):
+            if os.environ.get(ghg_in_env, None):
+                namelist['radctl'][ghg_in_namelist] = float(os.environ.get(ghg_in_env))
+
+        # Allow for user defined orbital values:
+        for orb_in_env, orb_in_namelist in zip(
+                ["CECC_echam", "COBLD_echam", "CLONP_echam"],
+                ["cecc", "cobld", "clonp"]):
+            if os.environ.get(orb_in_env, None):
+                namelist['radctl'][orb_in_namelist] = float(os.environ.get(orb_in_env))
+                del namelist['radctl']['yr_perp']
+                namelist['runctl']['l_orbvsop87'] = False
