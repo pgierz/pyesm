@@ -31,32 +31,33 @@ class EchamCompute(Echam, ComponentCompute):
                  *args, **kwargs):
         super(EchamCompute, self).__init__(*args, **kwargs)
         self.is_coupled = is_coupled
-        self.oceres = "GR15"  # TODO: We need to get this from the environment...
+        self.oceres = 'GR15'  # TODO: We need to get this from the environment...
         self.dataset = dataset(self.res, self.levels, self.oceres)
-        self.pool_dir = self.machine.pool_directories['pool']+"/ECHAM6/"
+        self.pool_dir = self.machine.pool_directories['pool']+'/ECHAM6/'
 
         self._default_prepare_steps = [
-            "files_from_dataset",
-            "files_from_restart_in",
-            "configure_files_default",
-            "configure_files_user",
-            "read_namelist",
-            "configure_namelist_default",
-            "configure_namelist_user",
-            "copy_files_to_exp_tree"]
+            'files_from_dataset',
+            'files_from_restart_in',
+            'configure_files_default',
+            'configure_files_user',
+            'read_namelist',
+            'configure_namelist_default',
+            'configure_namelist_user',
+            'copy_files_to_exp_tree',
+            ]
 
     def _compute_requirements(self):
         """ Compute requirements for echam6 """
-        self.executeable = "echam6"
+        self.executeable = 'echam6'
         self.command = None
         # Number of nodes is dependent on the cores per compute node. Here, we
         # use a dictionary of dictionaries. The dictionary of the **outer**
         # dictionary is the resolution, the dictionary key of the **inter**
         # dictionary is the number of nodes needed. The hostname decides how
         # many cores per compute node exit.
-        self._nnodes = {"T63": {36: 12, 24: 18}}[self.res]
-        self._nproca = {"T63": {36: 24, 24: 24}}[self.res]
-        self._nprocb = {"T63": {36: 18, 24: 18}}[self.res]
+        self._nnodes = {'T63': {36: 12, 24: 18}}[self.res]
+        self._nproca = {'T63': {36: 24, 24: 24}}[self.res]
+        self._nprocb = {'T63': {36: 18, 24: 18}}[self.res]
         self._num_tasks = None
         self._num_threads = None
 
@@ -100,14 +101,58 @@ class EchamCompute(Echam, ComponentCompute):
                 appropriate for the year
         """
         for filetype in self._filetypes:
-            if hasattr(self.dataset, filetype+"_in_pool"):
+            if hasattr(self.dataset, filetype+'_in_pool'):
                 files_for_this_year = self.dataset.find(
-                    filetype=filetype+"_in_pool",
-                    year=self.calendar.current_date.year)
+                    filetype=filetype+'_in_pool',
+                    year=self.calendar.current_date.year
+                    )
                 for human_readable_name, current_file in files_for_this_year:
                     self.files[filetype][human_readable_name] = ComponentFile(
                         src=self.pool_dir+current_file,
-                        dest=getattr(self, filetype+"_dir"))
+                        dest=getattr(self, filetype+'_dir')
+                        )
+
+    def _prepare_files_from_restart_in(self):
+        """
+        Gets the restart files to be used for the experiment that are relevant
+        for echam.
+
+        This method gets restart files from either:
+        + Somewhere on the filesystem (If you are doing a "cold start",
+          restarts are taken from the pool directory, if you are doing a restart
+          from a different experiment, restarts are taken from the environmental
+          variables INI_RESTART_DIR_echam)
+        + The experiments own restart directory
+        """
+        if self.calendar.run_number == 1:
+            restart_expid = os.environ.get('INI_PARENT_EXP_ID_echam', 'khw0030')
+            restart_date = os.environ.get('INI_PARENT_DATE_echam', '22941231')
+            restart_files_directory = os.environ.get(
+                'INI_RESTART_DIR_echam',
+                self.pool_dir+'/MPIESM/restart/dev/'+restart_expid+'/restart/echam6'
+                )
+        else:
+            restart_expid = self.expid
+            restart_date = self.calendar.previous_date
+            restart_files_directory = self.restart_dir
+
+        # Get the restart files
+        invalid_streams = ['yasso', 'jsbid', 'jsbach', 'surf', 'nitro', 'veg', 'land']
+        all_files_in_restart_dir = os.listdir(restart_files_directory)
+        # Use a set to automatically discard duplicates, since we are going
+        # over two loops:
+        restart_files = set()
+        for invalid_stream in invalid_streams:
+            for f in all_files_in_restart_dir:
+                if invalid_stream in f:
+                    continue
+                if f.startswith('restart_'+restart_expid) and restart_date in f:
+                    restart_files.add(f)
+        for f in restart_files:
+            self.files['restart'][f] = ComponentFile(
+                src=restart_files_directory+'/'+f,
+                dest=self.restart_dir
+                )
 
     def _prepare_read_namelist(
             self,
@@ -172,12 +217,12 @@ class EchamCompute(Echam, ComponentCompute):
         if self.calendar.run_number > 1:
             lresume_in_namelist = True
         else:
-            lresume_in_namelist = bool(os.environ.get("LRESUME_echam", False))
+            lresume_in_namelist = bool(os.environ.get('LRESUME_echam', False))
         namelist['runctl']['lresume'] = lresume_in_namelist
         namelist['runctl']['out_datapath'] = self.work_dir
         namelist['runctl']['lcouple'] = self.is_coupled
         # Allow for 6-hourly output:
-        if os.environ.get("OUTPUT6H_echam", None):
+        if os.environ.get('OUTPUT6H_echam', None):
             namelist['runctl']['putdata'] = [6, 'hours', 'last', 0]
         # TODO:
         # namelist['runctl']['putrerun']
@@ -199,15 +244,15 @@ class EchamCompute(Echam, ComponentCompute):
         #
         # Allow for user defined greenhouse gas values:
         for ghg_in_env, ghg_in_namelist in zip(
-                ["CO2_echam", "CH4_echam", "N2O_echam"],
+                ['CO2_echam', 'CH4_echam', 'N2O_echam'],
                 ['co2vmr', 'ch4vmr', 'n2ovmr']):
             if os.environ.get(ghg_in_env, None):
                 namelist['radctl'][ghg_in_namelist] = float(os.environ.get(ghg_in_env))
 
         # Allow for user defined orbital values:
         for orb_in_env, orb_in_namelist in zip(
-                ["CECC_echam", "COBLD_echam", "CLONP_echam"],
-                ["cecc", "cobld", "clonp"]):
+                ['CECC_echam', 'COBLD_echam', 'CLONP_echam'],
+                ['cecc', 'cobld', 'clonp']):
             if os.environ.get(orb_in_env, None):
                 namelist['radctl'][orb_in_namelist] = float(os.environ.get(orb_in_env))
                 del namelist['radctl']['yr_perp']
