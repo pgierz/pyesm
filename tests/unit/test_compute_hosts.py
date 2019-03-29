@@ -7,7 +7,7 @@ else:
 import socket
 import unittest
 
-from pyesm.compute_hosts import Host
+from pyesm.core.compute_hosts import Host
 
 
 class test_Host(unittest.TestCase):
