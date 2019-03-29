@@ -49,7 +49,6 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'sphinx_pyreverse'
     ]
 
 # Order of the autoclass content:

@@ -5,6 +5,3 @@ Code: ``time_control``
    :members:
    :undoc-members:
    :show-inheritance:
-
-.. uml:: pyesm
-   :classes:
