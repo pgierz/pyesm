@@ -123,13 +123,21 @@ class EchamCompute(Echam, ComponentCompute):
           from a different experiment, restarts are taken from the environmental
           variables INI_RESTART_DIR_echam)
         + The experiments own restart directory
+
+        Notes
+        -----
+        The following relevant variables can be set in the shell runscript to
+        override certain defaults:
+        + INI_PARENT_EXP_ID_echam
+        + INI_PARENT_DATE_echam
+        + INI_RESTART_DIR_echam
         """
         if self.calendar.run_number == 1:
             restart_expid = os.environ.get('INI_PARENT_EXP_ID_echam', 'khw0030')
             restart_date = os.environ.get('INI_PARENT_DATE_echam', '22941231')
             restart_files_directory = os.environ.get(
                 'INI_RESTART_DIR_echam',
-                self.pool_dir+'/MPIESM/restart/dev/'+restart_expid+'/restart/echam6'
+                self.pool_dir+'/../MPIESM/restart/dev/'+restart_expid+'/restart/echam6'
                 )
         else:
             restart_expid = self.expid
