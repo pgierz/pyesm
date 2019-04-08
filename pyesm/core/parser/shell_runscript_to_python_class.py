@@ -46,7 +46,9 @@ def main():
     this_setup = dynamically_load_and_initialize_setup(this_setup, this_env.__dict__)
     print('#'*80)
     this_setup.echam._prepare_files_from_restart_in()
-    print(this_setup.echam.files['restart'])
+    for thisfile in this_setup.echam.files['restart']:
+        print(thisfile)
+    this_setup.echam.files['restart'].digest()
     #print('Calling all PREPARE steps')
     #this_setup._call_phase('prepare')
     print('done')
