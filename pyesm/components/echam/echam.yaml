@@ -1,0 +1,129 @@
+# ECHAM YAML DEFAULT CONFIGURATION FILE
+
+model: echam6
+repository: https://gitlab.dkrz.de/modular_esm/echam6
+domain: atmosphere
+description: |
+        The ECHAM atmosphere model, major version 6
+        (someone from Hamburg)
+        paper citation
+
+license_text: |
+        Please make sure you have a licence to use echam.In case you are
+        unsure, please contact redmine....
+
+pool_dir: "ECHAM6"
+
+executable: echam6
+
+python_replacements:
+        resolution:
+                from: @RES@
+                to: res
+        year:
+                from: @YEAR@
+                to: current_date[0]
+
+              
+versions:
+        6.304p1:
+                repo_tag: 6.304p1
+                dataset: r0007               
+        
+
+resolutions:
+	T63:
+		"res": "T63"
+         	"levels": "L47"
+         	"Timestep": 450
+        	"_nx": 192
+         	"_ny": 96
+         	"_ngridpoints": 192*96
+                cores_per_nodes:
+                        24:
+                                nproca: 24
+                                nprocb: 18
+                        36:     
+                                nproca: 24
+                                nprocb: 18                                
+  	 T31:
+        	"res": "T31" #SRC @RES@
+         	"levels": "L19"
+         	"Timestep": 450
+         	"_nx": 96
+                "_ny": 48
+                "_ngridpoints": 96*48
+	 T127:
+                "res": "T127"
+                "levels": "L47"
+                "Timestep": 200
+                "_nx": 384
+                "_ny": 192
+                "_ngridpoints": 384*192
+
+input_in_workdir:
+        "cldoptprops": "/ECHAM6_CldOptProps.nc"
+        "janspec": "unit.23"
+        "jansurf": "unit.24"
+        "rrtmglw": "rrtmg_lw.nc"
+        "rrtmgsw": "rrtmg_sw.nc"
+        "tslclim": "unit.92"
+        "vgratclim": "unit.91"
+        "vltclim": "unit.90"
+
+
+datasets:
+        r0007:
+                "amipsic": 
+                        "/@RES@/amip/@RES@_amipsic_@YEAR@.nc": 
+                                from: 1870
+                                to: 2016
+                "amipsst": 
+                        "/@RES@/amip/@RES@_amipsst_@YEAR@.nc":
+                                from: 1870
+                                to: 2016
+                "histaerocoarse": 
+                        "/@RES@/aero2/@RES@_aeropt_kinne_sw_b14_coa.nc" 
+                "histaerofarir": 
+                        "/@RES@/aero2/@RES@_aeropt_kinne_lw_b16_coa.nc"
+                "histaerofin": 
+                        "/@RES@/aero2/@RES@_aeropt_kinne_sw_b14_fin_1865.nc":
+                                to: 1864
+                        "/@RES@/aero2/@RES@_aeropt_kinne_sw_b14_fin_@YEAR@.nc":
+                                from: 1865
+                                to: 2000
+                "histgreenh":
+                        "/greenhouse_historical.nc"
+                "histozone": 
+                        "/@RES@/ozone/@RES@_ozone_historical_1850.nc": 
+                                to: 1850
+                        "/@RES@_ozone_historical_@YEAR@.nc":
+                                        from: 1851
+                                        to: 2008
+                         
+
+            "histswflux": {"/solar_irradiance/swflux_14band_1850.nc":  {"from": float("-inf"), "to": 1850},
+                           "/solar_irradiance/swflux_14band_@YEAR@.nc" :  {"from": 1851, "to": float("inf")},
+                          },
+
+            "histvolcir": {"/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
+                          },
+
+            "histvolcsw": {"/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
+                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
+                          },
+
+            "piaerocoarse": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_coa.nc" : {"from": float("-inf"), "to": float("inf")}},
+
+            "piaerofarir": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_lw_b16_coa.nc" : {"from": float("-inf"), "to": float("inf")}},
+
+            "piaerofin": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_fin_1865.nc" : {"from": float("-inf"), "to": float("inf")}},
+
+            "piozone": {"/"+self.res+"/"+self.res+"_ozone_picontrol.nc": {"from": float("-inf"), "to": float("inf")}},
+
+            "pisic": {"/"+self.res+"/"+self.res+self.oceres+"_piControl-LR_sic_1880-2379.nc": {"from": float("-inf"), "to": float("inf")}},
+
+            "pisst": {"/"+self.res+"/"+self.res+self.oceres+"_piControl-LR_sst_1880-2379.nc": {"from": float("-inf"), "to": float("inf")}},

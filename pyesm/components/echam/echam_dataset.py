@@ -127,66 +127,8 @@ class r0007(Dataset):
             "vltclim": {"/"+self.res+"/"+self.res+self.oceres+"_VLTCLIM.nc": {"from": float("-inf"), "to": float("inf")}},
         }
 
-        self.input_in_workdir = {
-            "cldoptprops": "/ECHAM6_CldOptProps.nc",
 
-            "janspec": "unit.23",
-
-            "jansurf": "unit.24", 
-
-            "rrtmglw": "rrtmg_lw.nc",
-
-            "rrtmgsw": "rrtmg_sw.nc",
-
-            "tslclim": "unit.92",
-
-            "vgratclim": "unit.91",
-
-            "vltclim": "unit.90",
         }
 
         self.forcing_in_pool = {
-            "amipsic": {"/"+self.res+"/amip/"+self.res+"_amipsic_@YEAR@.nc": {"from": 1870, "to": 2016}},
-
-            "amipsst": {"/"+self.res+"/amip/"+self.res+"_amipsst_@YEAR@.nc": {"from": 1870, "to": 2016}},
-
-            "histaerocoarse": {"/"+self.res+"/aero2/"+self.res+"_aeropt_kinne_sw_b14_coa.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "histaerofarir": {"/"+self.res+"/aero2/"+self.res+"_aeropt_kinne_lw_b16_coa.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "histaerofin": {"/"+self.res+"/aero2/"+self.res+"_aeropt_kinne_sw_b14_fin_1865.nc": {"from": float("-inf"), "to": 1864},
-                            "/"+self.res+"/aero2/"+self.res+"_aeropt_kinne_sw_b14_fin_@YEAR@.nc": {"from": 1865, "to": 2000}
-                           },
-
-            "histgreenh": {"/greenhouse_historical.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "histozone": {"/"+self.res+"/ozone/"+self.res+"_ozone_historical_1850.nc": {"from": float("-inf"), "to": 1850},
-                          self.res+"_ozone_historical_@YEAR@.nc": {"from": 1851, "to": 2008},
-                         },
-
-            "histswflux": {"/solar_irradiance/swflux_14band_1850.nc":  {"from": float("-inf"), "to": 1850},
-                           "/solar_irradiance/swflux_14band_@YEAR@.nc" :  {"from": 1851, "to": float("inf")},
-                          },
-
-            "histvolcir": {"/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
-                          },
-
-            "histvolcsw": {"/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
-                          },
-
-            "piaerocoarse": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_coa.nc" : {"from": float("-inf"), "to": float("inf")}},
-
-            "piaerofarir": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_lw_b16_coa.nc" : {"from": float("-inf"), "to": float("inf")}},
-
-            "piaerofin": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_fin_1865.nc" : {"from": float("-inf"), "to": float("inf")}},
-
-            "piozone": {"/"+self.res+"/"+self.res+"_ozone_picontrol.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "pisic": {"/"+self.res+"/"+self.res+self.oceres+"_piControl-LR_sic_1880-2379.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "pisst": {"/"+self.res+"/"+self.res+self.oceres+"_piControl-LR_sst_1880-2379.nc": {"from": float("-inf"), "to": float("inf")}},
         }
