@@ -30,6 +30,17 @@ versions:
                 repo_tag: 6.304p1
                 dataset: r0007               
         
+namelist_changes:
+        namelist.echam:
+                runctl:
+                        out_expname: @EXPID@
+                        dt_start:    @START_DATE@
+                        dt_stop:     @END_DATE@
+                        dt_resume:   @START_DATE@
+
+                radctl: 
+                        co2vmr: 888999
+                        ch4vmr: -99.2
 
 resolutions:
 	T63:
@@ -60,6 +71,27 @@ resolutions:
                 "_nx": 384
                 "_ny": 192
                 "_ngridpoints": 384*192
+
+restart:
+        frequency: 1
+        unit: months        
+
+scenarios:
+        PI-CTRL:
+                forcings:
+                        sst: pisst
+                        sic: pisic
+                        aerocoarse: piaerocoarse
+                        aerofin: piaerofin
+                        aerofarir: piaerofarir
+                        ozone: piozone
+
+
+couplings:
+        ocean:
+                remove_forcings:
+                        - sst
+                        - sic  
 
 input_in_workdir:
         "cldoptprops": "/ECHAM6_CldOptProps.nc"
@@ -98,32 +130,58 @@ datasets:
                         "/@RES@/ozone/@RES@_ozone_historical_1850.nc": 
                                 to: 1850
                         "/@RES@_ozone_historical_@YEAR@.nc":
-                                        from: 1851
-                                        to: 2008
-                         
+                                from: 1851
+                                to: 2008
+                "histswflux": 
+                        "/solar_irradiance/swflux_14band_1850.nc":
+                                to: 1850
+                        "/solar_irradiance/swflux_14band_@YEAR@.nc":  
+                                from: 1851
+                "histvolcir": 
+                        "/@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_1850.nc":
+                                to: 1850
+                        "/@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_@YEAR@.nc":
+                                from: 1851
+                                to: 1999
+                        "/@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_1999.nc":
+                                from: 2000
+                "histvolcsw":
+                        "/@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_1850.nc":
+                                to: 1850
+                        "/@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_@YEAR@.nc":
+                                from: 1851
+                                to: 1999
+                        "/@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_1999.nc":
+                                from: 2000
+                "piaerocoarse": 
+                        "/@RES@/aero/@RES@_aeropt_kinne_sw_b14_coa.nc"
+                "piaerofarir":
+                        "/@RES@/aero/@RES@_aeropt_kinne_lw_b16_coa.nc"
+                "piaerofin":
+                        "/@RES@/aero/@RES@_aeropt_kinne_sw_b14_fin_1865.nc"
+                "piozone":
+                        "/@RES@/@RES@_ozone_picontrol.nc"
+                "pisic":
+                        "/@RES@/@RES@@OCERES@_piControl-LR_sic_1880-2379.nc"
+                "pisst":
+                        "/@RES@/@RES@@OCERES@_piControl-LR_sst_1880-2379.nc"
+                "cldoptprops":
+                        "/ECHAM6_CldOptProps.nc"
+                "janspec":
+                        "/@RES@/@RES@@LEVELS@_jan_spec.nc"
+                "jansurf":
+                        "/@RES@/@RES@@OCERES@_jan_surf.nc"
+                "rrtmglw":
+                        "/rrtmg_lw.nc"
+                "rrtmgsw":
+                        "/rrtmg_sw.nc"
+                "tslclim":
+                        "/@RES@/@RES@_TSLCLIM.nc"
+                "vgratclim":
+                        "/@RES@/@RES@@OCERES@_VGRATCLIM.nc"
+                "vltclim": 
+                        "/@RES@/@RES@@OCERES@_VLTCLIM.nc"
 
-            "histswflux": {"/solar_irradiance/swflux_14band_1850.nc":  {"from": float("-inf"), "to": 1850},
-                           "/solar_irradiance/swflux_14band_@YEAR@.nc" :  {"from": 1851, "to": float("inf")},
-                          },
 
-            "histvolcir": {"/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_ir_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
-                          },
-
-            "histvolcsw": {"/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1850.nc": {"from": float("-inf"), "to": 1850},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_@YEAR@.nc": {"from": 1851, "to": 1999},
-                           "/"+self.res+"/volcano_aerosols/strat_aerosol_sw_"+self.res+"_1999.nc": {"from": 2000, "to": float("inf")},
-                          },
-
-            "piaerocoarse": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_coa.nc" : {"from": float("-inf"), "to": float("inf")}},
-
-            "piaerofarir": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_lw_b16_coa.nc" : {"from": float("-inf"), "to": float("inf")}},
-
-            "piaerofin": {"/"+self.res+"/aero/"+self.res+"_aeropt_kinne_sw_b14_fin_1865.nc" : {"from": float("-inf"), "to": float("inf")}},
-
-            "piozone": {"/"+self.res+"/"+self.res+"_ozone_picontrol.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "pisic": {"/"+self.res+"/"+self.res+self.oceres+"_piControl-LR_sic_1880-2379.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "pisst": {"/"+self.res+"/"+self.res+self.oceres+"_piControl-LR_sst_1880-2379.nc": {"from": float("-inf"), "to": float("inf")}},
+further_reading:
+        echam.datasets.yaml

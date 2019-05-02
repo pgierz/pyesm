@@ -110,21 +110,6 @@ class r0007(Dataset):
         self.oceres = oceres
 
         self.input_in_pool = {
-            "cldoptprops": {"/ECHAM6_CldOptProps.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "janspec": {"/"+self.res+"/"+self.res+self.levels+"_jan_spec.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "jansurf": {"/"+self.res+"/"+self.res+self.oceres+"_jan_surf.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "rrtmglw": {"/rrtmg_lw.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "rrtmgsw": {"/rrtmg_sw.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "tslclim": {"/"+self.res+"/"+self.res+"_TSLCLIM.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "vgratclim": {"/"+self.res+"/"+self.res+self.oceres+"_VGRATCLIM.nc": {"from": float("-inf"), "to": float("inf")}},
-
-            "vltclim": {"/"+self.res+"/"+self.res+self.oceres+"_VLTCLIM.nc": {"from": float("-inf"), "to": float("inf")}},
         }
 
 
