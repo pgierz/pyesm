@@ -16,15 +16,6 @@ pool_dir: "ECHAM6"
 
 executable: echam6
 
-python_replacements:
-        resolution:
-                from: @RES@
-                to: res
-        year:
-                from: @YEAR@
-                to: current_date[0]
-
-              
 versions:
         6.304p1:
                 repo_tag: 6.304p1
@@ -77,6 +68,16 @@ restart:
         unit: months        
 
 scenarios:
+        inputs:
+                cldoptprops: cldoptprops
+                janspec: janspec
+                jansurf: jansurf
+                rrtmglw: rrtmglw
+                rrtmgsw: rrtmgsw
+                tslclim: tslclim
+                vgrtclim: vgratclim
+                vltclim: vltclim
+
         PI-CTRL:
                 forcings:
                         sst: pisst
@@ -93,7 +94,7 @@ couplings:
                         - sst
                         - sic  
 
-input_in_workdir:
+inputs_in_workdir:
         "cldoptprops": "/ECHAM6_CldOptProps.nc"
         "janspec": "unit.23"
         "jansurf": "unit.24"
@@ -103,85 +104,14 @@ input_in_workdir:
         "vgratclim": "unit.91"
         "vltclim": "unit.90"
 
-
-datasets:
-        r0007:
-                "amipsic": 
-                        "/@RES@/amip/@RES@_amipsic_@YEAR@.nc": 
-                                from: 1870
-                                to: 2016
-                "amipsst": 
-                        "/@RES@/amip/@RES@_amipsst_@YEAR@.nc":
-                                from: 1870
-                                to: 2016
-                "histaerocoarse": 
-                        "/@RES@/aero2/@RES@_aeropt_kinne_sw_b14_coa.nc" 
-                "histaerofarir": 
-                        "/@RES@/aero2/@RES@_aeropt_kinne_lw_b16_coa.nc"
-                "histaerofin": 
-                        "/@RES@/aero2/@RES@_aeropt_kinne_sw_b14_fin_1865.nc":
-                                to: 1864
-                        "/@RES@/aero2/@RES@_aeropt_kinne_sw_b14_fin_@YEAR@.nc":
-                                from: 1865
-                                to: 2000
-                "histgreenh":
-                        "/greenhouse_historical.nc"
-                "histozone": 
-                        "/@RES@/ozone/@RES@_ozone_historical_1850.nc": 
-                                to: 1850
-                        "/@RES@_ozone_historical_@YEAR@.nc":
-                                from: 1851
-                                to: 2008
-                "histswflux": 
-                        "/solar_irradiance/swflux_14band_1850.nc":
-                                to: 1850
-                        "/solar_irradiance/swflux_14band_@YEAR@.nc":  
-                                from: 1851
-                "histvolcir": 
-                        "/@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_1850.nc":
-                                to: 1850
-                        "/@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_@YEAR@.nc":
-                                from: 1851
-                                to: 1999
-                        "/@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_1999.nc":
-                                from: 2000
-                "histvolcsw":
-                        "/@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_1850.nc":
-                                to: 1850
-                        "/@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_@YEAR@.nc":
-                                from: 1851
-                                to: 1999
-                        "/@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_1999.nc":
-                                from: 2000
-                "piaerocoarse": 
-                        "/@RES@/aero/@RES@_aeropt_kinne_sw_b14_coa.nc"
-                "piaerofarir":
-                        "/@RES@/aero/@RES@_aeropt_kinne_lw_b16_coa.nc"
-                "piaerofin":
-                        "/@RES@/aero/@RES@_aeropt_kinne_sw_b14_fin_1865.nc"
-                "piozone":
-                        "/@RES@/@RES@_ozone_picontrol.nc"
-                "pisic":
-                        "/@RES@/@RES@@OCERES@_piControl-LR_sic_1880-2379.nc"
-                "pisst":
-                        "/@RES@/@RES@@OCERES@_piControl-LR_sst_1880-2379.nc"
-                "cldoptprops":
-                        "/ECHAM6_CldOptProps.nc"
-                "janspec":
-                        "/@RES@/@RES@@LEVELS@_jan_spec.nc"
-                "jansurf":
-                        "/@RES@/@RES@@OCERES@_jan_surf.nc"
-                "rrtmglw":
-                        "/rrtmg_lw.nc"
-                "rrtmgsw":
-                        "/rrtmg_sw.nc"
-                "tslclim":
-                        "/@RES@/@RES@_TSLCLIM.nc"
-                "vgratclim":
-                        "/@RES@/@RES@@OCERES@_VGRATCLIM.nc"
-                "vltclim": 
-                        "/@RES@/@RES@@OCERES@_VLTCLIM.nc"
+forcings_in_workdir:
+        sic: "unit.96"
+        sst: "unit.20"
+        aerocoarse: "aero_coarse_@YEAR@.nc"
+        aerofin: "aero_fine_@YEAR@.nc"
+        aerofarir: "aero_farir_@YEAR@.nc"
+        ozone: "ozon@YEAR@"
 
 
 further_reading:
-        echam.datasets.yaml
+        - echam.datasets.yaml

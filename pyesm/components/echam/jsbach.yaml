@@ -19,106 +19,47 @@ directories:
         MODEL_DIR: /DUMMY_NEEDS_TO_BE_SET_IN_SCRIPT/
 
 
-pool_dir: "JSBACH"
+pool_dir: "@MACHINE_POOL_DIR@/JSBACH/"
 
-dynamic_vegetation: TRUE
+dynamic_vegetations: 
+        TRUE:
+                DYNVEG: "_dynveg"
+        FALSE:
+                DYNVEG: "_no_dynveg"
 
 executable: NONE #component model of echam, internally coupled
 
-python_replacements:
-        resolution:
-                from: @RES@
-                to: res
-        year:
-                from: @YEAR@
-                to: current_date[0]
-
-              
 versions:
         3.20:
                 repo_tag: 6.304p1
                 dataset: r0010               
-                directories:
+                forcings:
                         lctlib: @MODEL_DIR@/echam-6.3.04p1/lctlib_nlct21.def
         
 namelist_changes:
         namelist.jsbach:
 
-
-resolutions:
-	T63:
-		"res": "T63"
-         	"levels": "L47"
-         	"Timestep": 450
-        	"_nx": 192
-         	"_ny": 96
-         	"_ngridpoints": 192*96
-                cores_per_nodes:
-                        24:
-                                nproca: 24
-                                nprocb: 18
-                        36:     
-                                nproca: 24
-                                nprocb: 18                                
-  	 T31:
-        	"res": "T31" #SRC @RES@
-         	"levels": "L19"
-         	"Timestep": 450
-         	"_nx": 96
-                "_ny": 48
-                "_ngridpoints": 96*48
-	 T127:
-                "res": "T127"
-                "levels": "L47"
-                "Timestep": 200
-                "_nx": 384
-                "_ny": 192
-                "_ngridpoints": 384*192
-
-restart:
-        frequency: 1
-        unit: months        
-
 scenarios:
         PI-CTRL:
                 forcings:
-                        sst: pisst
-                        sic: pisic
-                        aerocoarse: piaerocoarse
-                        aerofin: piaerofin
-                        aerofarir: piaerofarir
-                        ozone: piozone
+                        jsbach: jsbach
+                        a_nd_file: a_nd_file
+                        lightning: lightning
+                        popdens: popdens
+                        LU: LU_1850
+                        Ndepo: Ndepo_1850
+                        LU_trans: LU_trans
 
-
-couplings:
-        ocean:
-                remove_forcings:
-                        - sst
-                        - sic  
-
-input_in_workdir:
+forcings_in_workdir:
         "jsbach": "jsbach.nc"
+        "lctlib": "lctlib_nclt21.def"
         "cover_fract": "cover_fract.@YEAR@.nc"
         "a_nd_file": "a_nd_file.nc"
         "lightning": "lightning.nc"
         "popdens": "population_density.nc"
-
-datasets:
-        r0010:
-                "jsbach": 
-                       "@ADJ_INPUT_DIR@/jsbach_@RES@@OCERES@_11tiles_5layers_1850@DYNVEG@.nc" 
-                "cover_fract":
-                       "@ADJ_INPUT_DIR@/jsbach_@RES@@OCERES@_11tiles_1850.nc":
-                                to: 1850
-                       "@ADJ_INPUT_DIR@/jsbach_@RES@@OCERES@_11tiles_@YEAR@.nc":
-                                from: 1851
-                "a_nd_file": 
-                       "@INPUT_DIR@/@RES@/spitfire/a_nd_@resolution@.nc"
-                "lightning":
-                       "@INPUT_DIR@/@RES@/spitfire/LISOTD_HRMC_V2.2_@RES@.nc"
-                "popdens":         
-                       "@INPUT_DIR@/@RES@/spitfire/population_density_HYDE_@RES@.nc \ 
-
+        "LU" : "landuse_harvest.@YEAR@.nc"
+        "Ndepo": "Ndepo.@YEAR@.nc"
+        "LU_trans": "landuseTransitions.@YEAR@.nc"
 
 further_reading:
-        echam.datasets.yaml
+        - jsbach.datasets.yaml
