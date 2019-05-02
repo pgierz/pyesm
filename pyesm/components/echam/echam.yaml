@@ -1,8 +1,8 @@
 # ECHAM YAML DEFAULT CONFIGURATION FILE
 
-model: echam6
+model: echam
 repository: https://gitlab.dkrz.de/modular_esm/echam6
-domain: atmosphere
+type: atmosphere
 description: |
         The ECHAM atmosphere model, major version 6
         (someone from Hamburg)
@@ -15,6 +15,7 @@ license_text: |
 pool_dir: "ECHAM6"
 
 executable: echam6
+version: 6.304p1
 
 versions:
         6.304p1:
@@ -24,23 +25,22 @@ versions:
 namelist_changes:
         namelist.echam:
                 runctl:
-                        out_expname: @EXPID@
-                        dt_start:    @START_DATE@
-                        dt_stop:     @END_DATE@
-                        dt_resume:   @START_DATE@
+                        out_expname: '@EXPID@'
+                        dt_start:    '@START_DATE@'
+                        dt_stop:     '@END_DATE@'
+                        dt_resume:   '@START_DATE@'
 
                 radctl: 
                         co2vmr: 888999
                         ch4vmr: -99.2
 
 resolutions:
-	T63:
-		"res": "T63"
-         	"levels": "L47"
-         	"Timestep": 450
-        	"_nx": 192
-         	"_ny": 96
-         	"_ngridpoints": 192*96
+        T63:
+                res: "T63"
+                levels: "L47"
+                Timestep: 450
+                _nx: 192
+                _ny: 96
                 cores_per_nodes:
                         24:
                                 nproca: 24
@@ -48,20 +48,18 @@ resolutions:
                         36:     
                                 nproca: 24
                                 nprocb: 18                                
-  	 T31:
-        	"res": "T31" #SRC @RES@
-         	"levels": "L19"
-         	"Timestep": 450
-         	"_nx": 96
-                "_ny": 48
-                "_ngridpoints": 96*48
-	 T127:
+        T31:
+                res: "T31" #SRC @RES@
+                levels: "L19"
+                Timestep: 450
+                _nx: 96
+                _ny: 48
+        T127:
                 "res": "T127"
                 "levels": "L47"
                 "Timestep": 200
                 "_nx": 384
                 "_ny": 192
-                "_ngridpoints": 384*192
 
 restart:
         frequency: 1
