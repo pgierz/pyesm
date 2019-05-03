@@ -1,0 +1,19 @@
+transformations:
+        distwgt: |
+#
+LOCTRANS SCRIPR
+DISTWGT U SCALAR LATITUDE @bins1@ @bins2@
+#
+
+        bicubic: |
+#
+LOCTRANS SCRIPR
+BICUBIC D SCALAR LATITUDE @bins@
+#
+
+coupled_vars: |
+@snd@ @rcv@ @id@ @seq@ @lag@ @restart_file@
+@from@ @to@ @from.nx@ @from.ny@ @to.nx@ to.ny@
+@transformation@
+                
+

@@ -1,0 +1,104 @@
+#
+# AWICM
+#
+#
+
+submodules:
+        - fesom
+        - echam
+
+coupler: oasis3-mct
+        
+
+versions:
+        1.1:
+                tag: CMIP6
+                echam: 6.304p1
+                
+resolutions:
+        T63_CORE:
+                nproca_echam: 24
+                nprocb_echam: 18
+                nproca_fesom: 288
+                nprocb_fesom: 1
+                compute_time: "02:00:00"
+
+resume:
+        TRUE:
+                output_exchanged_vars: FALSE
+                A2O_LAG: "@TIME_STEP_echam@"
+                O2A_LAG: "@TIME_STEP_fesom@"
+        FALSE:
+                a2o_lag: 0
+                o2a_lag: 0
+
+coupled_vars:
+        o2a:
+                lag: o2a_lag
+                restart_file: o2a_flux
+                seq: 1
+                from: feom
+                to: atmo
+                dt_couple: @TIME_STEP@
+                transformation: distwgt
+                fields:
+                        1:      
+                                snd: "sst_feom:sit_feom:sie_feom"
+                                rcv: "sst_atmo:sit_atmo:sie_atmo"
+                        4:
+                                snd: "snt_feom" 
+                                rcv: "snt_atmo"
+
+
+         a2o:
+                lag: a2o_lag
+                restart_file: a2o_flux
+                seq: a2o_seq
+                from: atmo
+                to: feom
+                dt_couple: @TIME_STEP@
+                transformation: distwgt
+                fields:
+                        5:
+                                snd: "taux_atm:tauy_atm:taux_ica:tauy_ica"
+                                rcv: "taux_oce:tauy_oce:taux_ico:tauy_ico"
+                                transformation: bicubic
+                        9:
+                                snd: "prec_atm" 
+                                rcv: "prec_oce"
+                       10:     
+                                snd: "snow_atm"
+                                rcv: "snow_oce"
+                       11:
+                                snd: "evap_atm"
+                                rcv: "evap_oce" 
+                       12:
+                                snd: "subl_atm" 
+                                rcv: "subl_oce" 
+                       13:
+                                snd: "heat_atm" 
+                                rcv: "heat_oce"
+                       14:
+                                snd: "heat_ica" 
+                                rcv: "heat_ico"
+                       15:
+                                snd: "heat_swa" 
+                                rcv: "heat_swo" 
+                       16:
+                                snd: "hydr_atm" 
+                                rcv: "hydr_oce" 
+
+grids:
+        feom:
+                nx: nx_fesom
+                ny: ny_fesom
+        atmo:
+                nx: nx_echam
+                ny: ny_echam
+
+transformations:
+        distwgt:
+                bins1: 15
+                bins2: 6
+        bicubic:
+                bins: 15
