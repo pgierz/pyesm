@@ -3,8 +3,6 @@
 model: jsbach
 repository: https://gitlab.dkrz.de/modular_esm/echam6
 domain: vegetation
-submodel_to: echam
-inherit_from: echam
 
 description: |
         The JSBACH vegetation model, major version 3
