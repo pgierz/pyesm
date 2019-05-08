@@ -1,26 +1,25 @@
-model: echam
-repository: https://gitlab.dkrz.de/modular_esm/echam6
-type: atmosphere
-include_submodels: []
+inputs_in_workdir:
+  cldoptprops: /ECHAM6_CldOptProps.nc
+  janspec: unit.23
+  jansurf: unit.24
+  rrtmglw: rrtmg_lw.nc
+  rrtmgsw: rrtmg_sw.nc
+  tslclim: unit.92
+  vgratclim: unit.91
+  vltclim: unit.90
 description: |
   The ECHAM atmosphere model, major version 6
   (someone from Hamburg)
   paper citation
-license_text: |
-  Please make sure you have a licence to use echam.In case you are
-  unsure, please contact redmine....
-pool_dir: '@MACHINE_POOL_DIR@/ECHAM6'
-executable: echam6
-version: 6.304p1
-versions:
-  6.304p1:
-    repo_tag: 6.304p1
-    dataset: r0007
-
-INI_PARENT_DATE: 22941231
 INI_PARENT_EXP_ID: khw0030
-INPUT_DIR: '@POOL_DIR@/ECHAM6/input/@DATASET@'
-INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@INI_PARENT_EXP_ID@/restart/echam6'
+forcings_in_workdir:
+  sic: unit.96
+  sst: unit.20
+  aerocoarse: aero_coarse_@YEAR@.nc
+  aerofin: aero_fine_@YEAR@.nc
+  aerofarir: aero_farir_@YEAR@.nc
+  ozone: ozon@YEAR@
+INI_PARENT_DATE: 22941231
 namelist_changes:
   namelist.echam:
     runctl:
@@ -31,85 +30,14 @@ namelist_changes:
 
     radctl:
       co2vmr: 888999
-      ch4vmr: -99.2
 
-resolutions:
-  T63:
-    res: T63
-    levels: L47
-    Timestep: 450
-    _nx: 192
-    _ny: 96
-    cores_per_nodes:
-      24:
-        nproca: 24
-        nprocb: 18
-      36:
-        nproca: 24
-        nprocb: 18
-  T31:
-    res: T31               #SRC @RES@
-    levels: L19
-    Timestep: 450
-    _nx: 96
-    _ny: 48
-  T127:
-    res: T127
-    levels: L47
-    Timestep: 200
-    _nx: 384
-    _ny: 192
-
+include_submodels: []
+type: atmosphere
 restart:
   frequency: 1
   unit: months
 
-scenarios:
-  always:
-    inputs:
-      cldoptprops: cldoptprops
-      janspec: janspec
-      jansurf: jansurf
-      rrtmglw: rrtmglw
-      rrtmgsw: rrtmgsw
-      tslclim: tslclim
-      vgrtclim: vgratclim
-      vltclim: vltclim
-
-  PI-CTRL:
-    forcings:
-      sst: pisst
-      sic: pisic
-      aerocoarse: piaerocoarse
-      aerofin: piaerofin
-      aerofarir: piaerofarir
-      ozone: piozone
-
-ADJ_INPUT_DIR: '@INPUT_DIR@/@RES@'
-couplings:
-  fesom:
-    ADJ_INPUT_DIR: '@MESH_DIR@/tarfiles@RES@/input/echam6'
-    remove_forcings:
-    - sst
-    - sic
-
-inputs_in_workdir:
-  cldoptprops: /ECHAM6_CldOptProps.nc
-  janspec: unit.23
-  jansurf: unit.24
-  rrtmglw: rrtmg_lw.nc
-  rrtmgsw: rrtmg_sw.nc
-  tslclim: unit.92
-  vgratclim: unit.91
-  vltclim: unit.90
-forcings_in_workdir:
-  sic: unit.96
-  sst: unit.20
-  aerocoarse: aero_coarse_@YEAR@.nc
-  aerofin: aero_fine_@YEAR@.nc
-  aerofarir: aero_farir_@YEAR@.nc
-  ozone: ozon@YEAR@
-further_reading: []
+executable: echam6
 datasets:
   r0007:
     amipsic:
@@ -170,3 +98,48 @@ datasets:
     tslclim: /@RES@/@RES@_TSLCLIM.nc
     vgratclim: /@RES@/@RES@@OCERES@_VGRATCLIM.nc
     vltclim: /@RES@/@RES@@OCERES@_VLTCLIM.nc
+repository: https://gitlab.dkrz.de/modular_esm/echam6
+versions:
+  6.304p1:
+    repo_tag: 6.304p1
+    dataset: r0007
+
+INPUT_DIR: '@POOL_DIR@/ECHAM6/input/@DATASET@'
+license_text: |
+  Please make sure you have a licence to use echam.In case you are
+  unsure, please contact redmine....
+scenarios:
+  always:
+    inputs:
+      cldoptprops: cldoptprops
+      janspec: janspec
+      jansurf: jansurf
+      rrtmglw: rrtmglw
+      rrtmgsw: rrtmgsw
+      tslclim: tslclim
+      vgrtclim: vgratclim
+      vltclim: vltclim
+
+  PI-CTRL:
+    forcings:
+      sst: pisst
+      sic: pisic
+      aerocoarse: piaerocoarse
+      aerofin: piaerofin
+      aerofarir: piaerofarir
+      ozone: piozone
+
+version: 6.304p1
+ADJ_INPUT_DIR: '@INPUT_DIR@/@RES@'
+further_reading: []
+INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@INI_PARENT_EXP_ID@/restart/echam6'
+model: echam
+resolution: T63
+couplings:
+  fesom:
+    ADJ_INPUT_DIR: '@MESH_DIR@/tarfiles@RES@/input/echam6'
+    remove_forcings:
+    - sst
+    - sic
+
+pool_dir: '@MACHINE_POOL_DIR@/ECHAM6'

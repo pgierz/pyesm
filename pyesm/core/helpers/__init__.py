@@ -275,7 +275,7 @@ class ComponentNamelist(ComponentFile):
 
         Attributes
         ----------
-        nml: f90nml.namelist.Namelist
+        nml : :py:class:`f90nml.namelist.Namelist`
             A Fortran namelist representation in python
 
 

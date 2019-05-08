@@ -7,6 +7,8 @@ import importlib
 from pkg_resources import resource_filename
 import os
 import sys
+import re
+
 
 from ruamel.yaml import YAML, yaml_object
 
@@ -44,14 +46,22 @@ class SetUpCompute(object):
                 if var.endswith(self.NAME+"_standalone") and var.split("_"+self.NAME+"_standalone")[0] not in env:
                     env[var.split("_"+self.NAME+"_standalone")[0]] = env[var]
                     del env[var]
-        
+
         # Read Default YAML File for this setup (e.g. AWICM, ECHAM, usw)
         self.config = self.read_yaml(self.NAME)
-        
+
+        # Computation requirments might be defined in the environment: 
+        # TODO: Make this directly check the machine, not from the environment. e.g. socket.gethostname()
+        loginnode_name = socket.gethostname()
+        machine_file = self.find_machinename_from_loginnode(loginnode_name)
+        self.machine_config = self.read_yaml(machine_name)
+        for key, value in self.machine_config.items():
+            self.config.setdefault(key, value)
+
         # Everything the user put in a YAML file
         if 'read_yaml' in env:
             self.config.update(self.personal_config)
-        
+
         for component in self.components.values():
             self.update_component_from_env(component, env)
 
@@ -75,14 +85,20 @@ class SetUpCompute(object):
 
         self.calendar = EsmCalendar(initial_date, final_date, delta_date)
 
-        # Computation requirments might be defined in the environment: 
-        self.machine = Host(env.get("machine_name"),
-                            batch_system=env.get("batch_system", None))
         self.total_tasks = 0
         self.job_time = self.compute_time = env.get("compute_time", None)
 
         self.preform_replacements()
 
+    def find_machinename_from_loginnode(self, name):
+        all_machines = self.read_yaml('all_machines')
+        for machine, value in all_machines.items():
+            for attribute, entry in value.items()
+                if attribute.endswith('_nodes'):
+                    pattern = entry
+                    if re.compile(pattern).search(name):
+                        return machine
+        sys.exit("unknown loginnode %s!" % name)
 
     def dump_yaml_to_stdout(self):
         all_yamls = {}
@@ -100,20 +116,23 @@ class SetUpCompute(object):
             return resource_filename('pyesm', component_name)
         if component_name.endswith('.yaml'):
             return resource_filename('pyesm', '/components/'+component_name)
-        else:
-            return resource_filename('pyesm', '/components/'+component_name+'.yaml')
+        return resource_filename('pyesm', '/components/'+component_name+'.yaml')
 
     def read_yaml(self, yaml_file, current_config={}):
-        print(80*"#")
-        print("Top of method read_yaml")
-        print(self.NAME, ":", current_config)
+        logging.debug(80*"-")
+        logging.debug("Top of method read_yaml")
+        logging.debug(
+                "Generating config for %s: the current config is %s",
+                self.NAME,
+                current_config
+                )
         yaml_filepath = self.find_yaml_path(yaml_file)
         with open(yaml_filepath) as yml:
             current_config.update(yaml.load(yml))
-        print(80*"#")
-        print(current_config)
+        logging.debug(80*"#")
+        logging.debug(current_config)
         if 'further_reading' in current_config:
-            print("Reading further_reading chapter in %s", yaml_file)
+            logging.debug("Reading further_reading chapter in %s", yaml_file)
             for additional_yaml in current_config['further_reading']:
                 current_config['further_reading'].remove(additional_yaml)
                 self.read_yaml(additional_yaml, current_config)
@@ -122,11 +141,11 @@ class SetUpCompute(object):
                 current_config['include_submodels'].remove(submodel)
                 submodel_config = {}
                 this_component = ComponentCompute(
-                        config=self.read_yaml(
-                            submodel, 
-                            current_config=submodel_config
-                            )
+                    config=self.read_yaml(
+                        submodel,
+                        current_config=submodel_config
                         )
+                    )
                 print(this_component)
                 print(dir(this_component))
                 self.components[this_component.NAME] = this_component
@@ -139,27 +158,44 @@ class SetUpCompute(object):
                 component.config[key] = value
 
 
+    # TODO: This needs refactoring for clarity, because I don't understand what
+    # the fuck Dirk and I wrote...
     def preform_replacements(self):
-        for key, value in self.config.items():
-            if key.startswith("choose_"):
-                chosen_key = key.replace("choose_", "")
-                if chosen_key in self.config:
-                    chosen_value = self.config[chosen_key]
-                    if chosen_value in value:
-                        for subkey, subvalue in self.config[key][chosen_value]:
-                            self.config.setdefault(subkey, subvalue)
+        undefined_choices = []
+        while any(key.startswith("choose_") for key in self.config.keys()):
+            for key, value in self.config.items():
+                if key.startswith("choose_"):
+                    print("Checking key %s" % key)
+                    chosen_key = key.replace("choose_", "")
+                    print("Determining choice for: %s" % chosen_key)
+                    if chosen_key in self.config:
+                        chosen_value = self.config[chosen_key]
+                        if chosen_value in value:
+                            print("Check passed for equivalence of:")
+                            print(chosen_value, value)
+                            print("Checking if config[%s] contains %s" % (key, chosen_value))
+                            print(self.config[key])
+                            print(self.config[key][chosen_value])
+                            for subkey, subvalue in self.config[key][chosen_value].items():
+                                self.config.setdefault(subkey, subvalue)
+                        else:
+                            print("Warning: Unknown value %s selected for %s" % (chosen_value, chosen_key))
                     else:
-                        print("Warning: Unknown %s" % chosen_key)
-                else:
-                    print("Error")
-                    sys.exit(4)
-                self.config.remove(key)
+                        print(key, value, chosen_key)
+                        undefined_choices.append(key)
+                    del self.config[key]
+        if undefined_choices:
+            # Check the host config for possible entries
+            print(
+            print(undefined_choices)
+            sys.exit()
+
 
     def _call_phase(self, Phase, SetUp_Last=True):
         """ Run a Phase for all registered components and any "top-level"
         magic that might need to happen for the SetUp
 
-        A requirement here is that the Phase **does not take any arguments**
+        A requirement here is that ``Phase`` **does not take any arguments**
         other than ``self``. By default, the SetUp method is called **last**.
         This allows a method SetUpCompute.work() to be defined so that the
         actual execution command of the models occurs here.

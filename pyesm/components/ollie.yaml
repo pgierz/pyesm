@@ -16,9 +16,14 @@
 "operating_system": 
         "linux": "centos"
 
-"partitions": 
-        "compute": "mpp"
-        "post": "smp"
+choose_compute_partition: 
+        "mpp":
+                cores_per_node: 36
+
+choose_post_partition:
+        "smp":
+                cores_per_node: 1
+
 
 "cores": 
         "compute": 36
