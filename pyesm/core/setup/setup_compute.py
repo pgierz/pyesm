@@ -8,7 +8,7 @@ from pkg_resources import resource_filename
 import os
 import sys
 import re
-
+import socket
 
 from ruamel.yaml import YAML, yaml_object
 
@@ -16,7 +16,6 @@ import pyesm.core.logging as logging
 from pyesm.core.component.component_compute import ComponentCompute
 from pyesm.core.compute_hosts import Host
 from pyesm.core.time_control import EsmCalendar, esm_calendar
-from pyesm.core.dark_magic import dynamically_load_and_initialize_component
 
 yaml = YAML()
 
@@ -42,19 +41,25 @@ class SetUpCompute(object):
         self.NAME = env.get('setup_name', this_setup)
         if 'standalone' in self.NAME:
             self.NAME = self.NAME.split("_standalone")[0]
+            self.standalone_model = True
             for var in env:
                 if var.endswith(self.NAME+"_standalone") and var.split("_"+self.NAME+"_standalone")[0] not in env:
                     env[var.split("_"+self.NAME+"_standalone")[0]] = env[var]
                     del env[var]
 
         # Read Default YAML File for this setup (e.g. AWICM, ECHAM, usw)
-        self.config = self.read_yaml(self.NAME)
+        if not self.standalone_model:
+            self.config = self.read_yaml(self.NAME)
+        else:
+            self.config = {}
+            self.components[self.NAME] = ComponentCompute(config=self.read_yaml(self.NAME, {}))
+
 
         # Computation requirments might be defined in the environment: 
         # TODO: Make this directly check the machine, not from the environment. e.g. socket.gethostname()
         loginnode_name = socket.gethostname()
         machine_file = self.find_machinename_from_loginnode(loginnode_name)
-        self.machine_config = self.read_yaml(machine_name)
+        self.machine_config = self.read_yaml(machine_file)
         for key, value in self.machine_config.items():
             self.config.setdefault(key, value)
 
@@ -93,7 +98,7 @@ class SetUpCompute(object):
     def find_machinename_from_loginnode(self, name):
         all_machines = self.read_yaml('all_machines')
         for machine, value in all_machines.items():
-            for attribute, entry in value.items()
+            for attribute, entry in value.items():
                 if attribute.endswith('_nodes'):
                     pattern = entry
                     if re.compile(pattern).search(name):
@@ -118,6 +123,13 @@ class SetUpCompute(object):
             return resource_filename('pyesm', '/components/'+component_name)
         return resource_filename('pyesm', '/components/'+component_name+'.yaml')
 
+    
+    def read_yaml_file(self, yaml_file):
+        yaml_filepath = self.find_yaml_path(yaml_file)
+        with open(yaml_filepath) as yml:
+            return yaml.load(yml)
+
+
     def read_yaml(self, yaml_file, current_config={}):
         logging.debug(80*"-")
         logging.debug("Top of method read_yaml")
@@ -126,16 +138,16 @@ class SetUpCompute(object):
                 self.NAME,
                 current_config
                 )
-        yaml_filepath = self.find_yaml_path(yaml_file)
-        with open(yaml_filepath) as yml:
-            current_config.update(yaml.load(yml))
+        current_config = self.read_yaml_file(yaml_file)
         logging.debug(80*"#")
         logging.debug(current_config)
+
         if 'further_reading' in current_config:
             logging.debug("Reading further_reading chapter in %s", yaml_file)
             for additional_yaml in current_config['further_reading']:
-                current_config['further_reading'].remove(additional_yaml)
                 self.read_yaml(additional_yaml, current_config)
+            del current_config['further_reading']
+
         if 'include_submodels' in current_config:
             for submodel in current_config['include_submodels']:
                 current_config['include_submodels'].remove(submodel)
@@ -149,6 +161,7 @@ class SetUpCompute(object):
                 print(this_component)
                 print(dir(this_component))
                 self.components[this_component.NAME] = this_component
+            del current_config['include_submodels']
 
         return current_config
 
@@ -162,31 +175,39 @@ class SetUpCompute(object):
     # the fuck Dirk and I wrote...
     def preform_replacements(self):
         undefined_choices = []
-        while any(key.startswith("choose_") for key in self.config.keys()):
+        all_keys = self.config.keys()
+        # while any(key.startswith("choose_") for key in self.config.keys()):
+        while True: 
+            found_key = False
             for key, value in self.config.items():
                 if key.startswith("choose_"):
-                    print("Checking key %s" % key)
-                    chosen_key = key.replace("choose_", "")
-                    print("Determining choice for: %s" % chosen_key)
-                    if chosen_key in self.config:
-                        chosen_value = self.config[chosen_key]
-                        if chosen_value in value:
-                            print("Check passed for equivalence of:")
-                            print(chosen_value, value)
-                            print("Checking if config[%s] contains %s" % (key, chosen_value))
-                            print(self.config[key])
-                            print(self.config[key][chosen_value])
-                            for subkey, subvalue in self.config[key][chosen_value].items():
-                                self.config.setdefault(subkey, subvalue)
-                        else:
-                            print("Warning: Unknown value %s selected for %s" % (chosen_value, chosen_key))
+                    found_key = True
+                    break
+            if found_key:
+                print("Checking key %s" % key)
+                chosen_key = key.replace("choose_", "")
+                print("Determining choice for: %s" % chosen_key)
+                if chosen_key in self.config:
+                    chosen_value = self.config[chosen_key]
+                    if chosen_value in value:
+                        print("Check passed for equivalence of:")
+                        print(chosen_value, value)
+                        print("Checking if config[%s] contains %s" % (key, chosen_value))
+                        print(self.config[key])
+                        print(self.config[key][chosen_value])
+                        for subkey, subvalue in self.config[key][chosen_value].items():
+                            self.config.setdefault(subkey, subvalue)
                     else:
-                        print(key, value, chosen_key)
-                        undefined_choices.append(key)
-                    del self.config[key]
+                        print("Warning: Unknown value %s selected for %s" % (chosen_value, chosen_key))
+                else:
+                    print(key, value, chosen_key)
+                    undefined_choices.append(key)
+                del self.config[key]
+            else:
+                break
         if undefined_choices:
             # Check the host config for possible entries
-            print(
+            print("There were undefined choices:")
             print(undefined_choices)
             sys.exit()
 

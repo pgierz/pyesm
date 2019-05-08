@@ -16,6 +16,10 @@
 "operating_system": 
         "linux": "centos"
 
+compute_partition: mpp
+
+post_partition: smp
+
 choose_compute_partition: 
         "mpp":
                 cores_per_node: 36
@@ -25,12 +29,13 @@ choose_post_partition:
                 cores_per_node: 1
 
 
-"cores": 
+"cores":
         "compute": 36
-        
-"cpus": "compute": 2
-        
-"pool_directories": 
+
+"cpus":
+        "compute": 2
+
+"pool_directories":
         "pool": "/work/ollie/pool"
         "projects": "/work/ollie/projects"
 

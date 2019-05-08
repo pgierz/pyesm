@@ -1,80 +1,64 @@
-inputs_in_workdir:
-  cldoptprops: /ECHAM6_CldOptProps.nc
-  janspec: unit.23
-  jansurf: unit.24
-  rrtmglw: rrtmg_lw.nc
-  rrtmgsw: rrtmg_sw.nc
-  tslclim: unit.92
-  vgratclim: unit.91
-  vltclim: unit.90
-description: |
-  The ECHAM atmosphere model, major version 6
-  (someone from Hamburg)
-  paper citation
-INI_PARENT_EXP_ID: khw0030
-forcings_in_workdir:
-  sic: unit.96
-  sst: unit.20
-  aerocoarse: aero_coarse_@YEAR@.nc
-  aerofin: aero_fine_@YEAR@.nc
-  aerofarir: aero_farir_@YEAR@.nc
-  ozone: ozon@YEAR@
-INI_PARENT_DATE: 22941231
-namelist_changes:
-  namelist.echam:
-    runctl:
-      out_expname: '@EXPID@'
-      dt_start: '@START_DATE@'
-      dt_stop: '@END_DATE@'
-      dt_resume: '@START_DATE@'
+hostnames:
+  login: ollie[01]
+  compute: prod-[0-9]{3}
+  mini: mini
+nodetypes:
+- login
+- compute
+- fat
+- mini
 
-    radctl:
-      co2vmr: 888999
+batch_system: slurm
+operating_system:
+  linux: centos
+compute_partition: mpp
+post_partition: smp
+cores:
+  compute: 36
 
-include_submodels: []
-type: atmosphere
+cpus:
+  compute: 2
+
+pool_directories:
+  pool: /work/ollie/pool
+  projects: /work/ollie/projects
+cores_per_node: 36
 included_component_jsbach:
+# ECHAM YAML DEFAULT CONFIGURATION FILE
+
+  model: jsbach
+  repository: https://gitlab.dkrz.de/modular_esm/echam6
   domain: vegetation
-  datasets:
-    r0010:
-      jsbach: '@ADJ_INPUT_DIR@/jsbach_@RES@@OCERES@_11tiles_5layers_1850@DYNVEG@.nc'
-      cover_fract:
-        '@ADJ_INPUT_DIR@/jsbach_@RES@@OCERES@_11tiles_1850.nc':
-          to: 1850
-        '@ADJ_INPUT_DIR@/jsbach_@RES@@OCERES@_11tiles_@YEAR@.nc':
-          from: 1851
-      a_nd_file: '@INPUT_DIR@/@RES@/spitfire/a_nd_@resolution@.nc'
-      lightning: '@INPUT_DIR@/@RES@/spitfire/LISOTD_HRMC_V2.2_@RES@.nc'
-      popdens: '@INPUT_DIR@/@RES@/spitfire/population_density_HYDE_@RES@.nc'
-      LU_1850: '@INPUT_DIR@/@RES@/New_Hampshire_LCC/hist_harvest/LUH_harvest_@RES@_1850.nc'
-      Ndepo_1850: '@INPUT_DIR@/@RES@/@RES@_ndepo_CMIP_NCAR_CCMI-1-0_gr_185001-185012-clim.nc'
-      LU_trans: '@INPUT_DIR@/@RES@/New_Hampshire_LCC/no_LUH_transitions_@RES@.nc'
+
   description: |
     The JSBACH vegetation model, major version 3
     (someone from Hamburg)
     paper citation
-  repository: https://gitlab.dkrz.de/modular_esm/echam6
+
+  license_text: |
+    Please make sure you have a licence to use echam.In case you are
+    unsure, please contact redmine....
+
+  directories:
+    MODEL_DIR: /DUMMY_NEEDS_TO_BE_SET_IN_SCRIPT/
+
+
+  pool_dir: '@MACHINE_POOL_DIR@/JSBACH/'
+
+  dynamic_vegetations:
+    true:
+      DYNVEG: _dynveg
+    false:
+      DYNVEG: _no_dynveg
+
+  executable: NONE #component model of echam, internally coupled
+
   versions:
     3.20:
       repo_tag: 6.304p1
       dataset: r0010
       forcings:
         lctlib: '@MODEL_DIR@/echam-6.3.04p1/lctlib_nlct21.def'
-  forcings_in_workdir:
-    jsbach: jsbach.nc
-    lctlib: lctlib_nclt21.def
-    cover_fract: cover_fract.@YEAR@.nc
-    a_nd_file: a_nd_file.nc
-    lightning: lightning.nc
-    popdens: population_density.nc
-    LU: landuse_harvest.@YEAR@.nc
-    Ndepo: Ndepo.@YEAR@.nc
-    LU_trans: landuseTransitions.@YEAR@.nc
-  directories:
-    MODEL_DIR: /DUMMY_NEEDS_TO_BE_SET_IN_SCRIPT/
-
-
-  executable: NONE
   scenarios:
     PI-CTRL:
       forcings:
@@ -86,168 +70,136 @@ included_component_jsbach:
         Ndepo: Ndepo_1850
         LU_trans: LU_trans
 
+  forcings_in_workdir:
+    jsbach: jsbach.nc
+    lctlib: lctlib_nclt21.def
+    cover_fract: cover_fract.@YEAR@.nc
+    a_nd_file: a_nd_file.nc
+    lightning: lightning.nc
+    popdens: population_density.nc
+    LU: landuse_harvest.@YEAR@.nc
+    Ndepo: Ndepo.@YEAR@.nc
+    LU_trans: landuseTransitions.@YEAR@.nc
   LCTLIBDEF_jsbach: /esm-master/echam-6.3.04p1//lctlib_nlct21.def
-  further_reading: []
-  model: jsbach
+included_component_echam:
+# ECHAM YAML DEFAULT CONFIGURATION FILE
+
+  model: echam
+  repository: https://gitlab.dkrz.de/modular_esm/echam6
+  type: atmosphere
+
+  description: |
+    The ECHAM atmosphere model, major version 6
+    (someone from Hamburg)
+    paper citation
+
   license_text: |
     Please make sure you have a licence to use echam.In case you are
     unsure, please contact redmine....
-  pool_dir: '@MACHINE_POOL_DIR@/JSBACH/'
-  dynamic_vegetations:
-    true:
-      DYNVEG: _dynveg
-    false:
-      DYNVEG: _no_dynveg
-restart:
-  frequency: 1
-  unit: months
 
-included_component_hdmodel:
-  inputs:
-    hdpara: '@INPUT_DIR@/hdpara.nc'
-    rmp_hd: '@INPUT_DIR@/rmp_@RES@_to_hd.nc'
-    hdstart: '@INPUT_DIR@/hdstart.nc'
-  domain: hydrology
-  description: |
-    The Hagemann/Dümenil hydrology model,
-    (someone from Hamburg)
-    paper citation
-  repository: https://gitlab.dkrz.de/modular_esm/echam6
-  resume:
-    false:
-      needed_inputs:
-        hdstart: hdstart
-    true:
-      needed_restarts:
-        hdrestart: hdrestart
+  pool_dir: '@MACHINE_POOL_DIR@/ECHAM6'
 
-  inputs_in_workdir:
-    hdpara: hdpara.nc
-    rmp_hd: rmp_hd.nc
-    hdstart: hdstart.nc
-  inherit_from: echam
-  executable: NONE
+  executable: echam6
+  version: 6.304p1
+
   versions:
     6.304p1:
       repo_tag: 6.304p1
       dataset: r0007
 
-  restarts:
-    hdrestart: '@RESTART_DIR@/hdrestart.nc'
-  submodel_to: echam
-  INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@PARENT_EXP_ID@/restart/jsbach'
-  model: hdmodel
-  needed_inputs:
-    hdpara: hdpara
-    rmp_hd: rmp_hd
+  INI_PARENT_DATE: 22941231
+  INI_PARENT_EXP_ID: khw0030
 
-  license_text: |
-    Please make sure you have a licence to use echam. In case you are
-    unsure, please contact redmine....
-  pool_dir: '@MACHINE_POOL_DIR@/HD'
-executable: echam6
-datasets:
-  r0007:
-    amipsic:
-      /@RES@/amip/@RES@_amipsic_@YEAR@.nc:
-        from: 1870
-        to: 2016
-    amipsst:
-      /@RES@/amip/@RES@_amipsst_@YEAR@.nc:
-        from: 1870
-        to: 2016
-    histaerocoarse: /@RES@/aero2/@RES@_aeropt_kinne_sw_b14_coa.nc
-    histaerofarir: /@RES@/aero2/@RES@_aeropt_kinne_lw_b16_coa.nc
-    histaerofin:
-      /@RES@/aero2/@RES@_aeropt_kinne_sw_b14_fin_1865.nc:
-        to: 1864
-      /@RES@/aero2/@RES@_aeropt_kinne_sw_b14_fin_@YEAR@.nc:
-        from: 1865
-        to: 2000
-    histgreenh: /greenhouse_historical.nc
-    histozone:
-      /@RES@/ozone/@RES@_ozone_historical_1850.nc:
-        to: 1850
-      /@RES@_ozone_historical_@YEAR@.nc:
-        from: 1851
-        to: 2008
-    histswflux:
-      /solar_irradiance/swflux_14band_1850.nc:
-        to: 1850
-      /solar_irradiance/swflux_14band_@YEAR@.nc:
-        from: 1851
-    histvolcir:
-      /@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_1850.nc:
-        to: 1850
-      /@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_@YEAR@.nc:
-        from: 1851
-        to: 1999
-      /@RES@/volcano_aerosols/strat_aerosol_ir_@RES@_1999.nc:
-        from: 2000
-    histvolcsw:
-      /@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_1850.nc:
-        to: 1850
-      /@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_@YEAR@.nc:
-        from: 1851
-        to: 1999
-      /@RES@/volcano_aerosols/strat_aerosol_sw_@RES@_1999.nc:
-        from: 2000
-    piaerocoarse: /@RES@/aero/@RES@_aeropt_kinne_sw_b14_coa.nc
-    piaerofarir: /@RES@/aero/@RES@_aeropt_kinne_lw_b16_coa.nc
-    piaerofin: /@RES@/aero/@RES@_aeropt_kinne_sw_b14_fin_1865.nc
-    piozone: /@RES@/@RES@_ozone_picontrol.nc
-    pisic: /@RES@/@RES@@OCERES@_piControl-LR_sic_1880-2379.nc
-    pisst: /@RES@/@RES@@OCERES@_piControl-LR_sst_1880-2379.nc
+  INPUT_DIR: '@POOL_DIR@/ECHAM6/input/@DATASET@'
+  INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@INI_PARENT_EXP_ID@/restart/echam6'
+
+
+  namelist_changes:
+    namelist.echam:
+      runctl:
+        out_expname: '@EXPID@'
+        dt_start: '@START_DATE@'
+        dt_stop: '@END_DATE@'
+        dt_resume: '@START_DATE@'
+
+      radctl:
+        co2vmr: 888999
+
+  resolution: T63
+  choose_resolution:
+    T63:
+      levels: L47
+      Timestep: 450
+      _nx: 192
+      _ny: 96
+      choose_cores_per_node:
+        24:
+          nproca: 24
+          nprocb: 18
+        36:
+          nproca: 24
+          nprocb: 18
+    T31:
+      levels: L19
+      Timestep: 450
+      _nx: 96
+      _ny: 48
+    T127:
+      levels: L47
+      Timestep: 200
+      _nx: 384
+      _ny: 192
+
+  restart:
+    frequency: 1
+    unit: months
+
+  scenarios:
+    always:
+      inputs:
+        cldoptprops: cldoptprops
+        janspec: janspec
+        jansurf: jansurf
+        rrtmglw: rrtmglw
+        rrtmgsw: rrtmgsw
+        tslclim: tslclim
+        vgrtclim: vgratclim
+        vltclim: vltclim
+
+    PI-CTRL:
+      forcings:
+        sst: pisst
+        sic: pisic
+        aerocoarse: piaerocoarse
+        aerofin: piaerofin
+        aerofarir: piaerofarir
+        ozone: piozone
+
+  ADJ_INPUT_DIR: '@INPUT_DIR@/@RES@'
+
+  couplings:
+    fesom:
+      ADJ_INPUT_DIR: '@MESH_DIR@/tarfiles@RES@/input/echam6'
+      remove_forcings:
+      - sst
+      - sic
+
+  inputs_in_workdir:
     cldoptprops: /ECHAM6_CldOptProps.nc
-    janspec: /@RES@/@RES@@LEVELS@_jan_spec.nc
-    jansurf: /@RES@/@RES@@OCERES@_jan_surf.nc
-    rrtmglw: /rrtmg_lw.nc
-    rrtmgsw: /rrtmg_sw.nc
-    tslclim: /@RES@/@RES@_TSLCLIM.nc
-    vgratclim: /@RES@/@RES@@OCERES@_VGRATCLIM.nc
-    vltclim: /@RES@/@RES@@OCERES@_VLTCLIM.nc
-repository: https://gitlab.dkrz.de/modular_esm/echam6
-versions:
-  6.304p1:
-    repo_tag: 6.304p1
-    dataset: r0007
+    janspec: unit.23
+    jansurf: unit.24
+    rrtmglw: rrtmg_lw.nc
+    rrtmgsw: rrtmg_sw.nc
+    tslclim: unit.92
+    vgratclim: unit.91
+    vltclim: unit.90
 
-INPUT_DIR: '@POOL_DIR@/ECHAM6/input/@DATASET@'
-license_text: |
-  Please make sure you have a licence to use echam.In case you are
-  unsure, please contact redmine....
-scenarios:
-  always:
-    inputs:
-      cldoptprops: cldoptprops
-      janspec: janspec
-      jansurf: jansurf
-      rrtmglw: rrtmglw
-      rrtmgsw: rrtmgsw
-      tslclim: tslclim
-      vgrtclim: vgratclim
-      vltclim: vltclim
-
-  PI-CTRL:
-    forcings:
-      sst: pisst
-      sic: pisic
-      aerocoarse: piaerocoarse
-      aerofin: piaerofin
-      aerofarir: piaerofarir
-      ozone: piozone
-
-version: 6.304p1
-ADJ_INPUT_DIR: '@INPUT_DIR@/@RES@'
-further_reading: []
-INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@INI_PARENT_EXP_ID@/restart/echam6'
-model: echam
-resolution: T63
-couplings:
-  fesom:
-    ADJ_INPUT_DIR: '@MESH_DIR@/tarfiles@RES@/input/echam6'
-    remove_forcings:
-    - sst
-    - sic
-
-pool_dir: '@MACHINE_POOL_DIR@/ECHAM6'
+  forcings_in_workdir:
+    sic: unit.96
+    sst: unit.20
+    aerocoarse: aero_coarse_@YEAR@.nc
+    aerofin: aero_fine_@YEAR@.nc
+    aerofarir: aero_farir_@YEAR@.nc
+    ozone: ozon@YEAR@
+  RESTART_echam: '12'
+  SCENARIO_echam: PI-CTRL
