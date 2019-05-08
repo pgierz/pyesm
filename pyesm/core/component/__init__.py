@@ -51,11 +51,13 @@ Subclasses include:
 
 import os
 
+from pkg_resources import resource_filename
 from ruamel.yaml import YAML, yaml_object
 
 from pyesm.core.database import ESMDatabase
 from pyesm.core.helpers import FileDict, SimElement
 
+import pyesm
 
 yaml = YAML()
 
@@ -63,11 +65,8 @@ yaml = YAML()
 @yaml_object(yaml)
 class Component(SimElement):
     """A generic class to hold methods a specific component can overload."""
-    NAME = "component"
-    VERSION = "0.0.0"
-    TYPE = "Generic"
 
-    def __init__(self, expid="test", resolution=None, parent_dir=".", use_SQL=False):
+    def __init__(self, expid="test", parent_dir=".", config=None):
         """
         Creates a component and an experiment tree, optionally registering it
         in a database.
@@ -76,21 +75,10 @@ class Component(SimElement):
         ----------
         expid : str, optional
             Default is "test". This is the Experiment ID for your simulation.
-        resolution : str, optional
-            Default is None. This should correspond to a resolution string
-            which allows you to get resolution in lateral/vertical and
-            timestep.
         parent_dir : str, optional
             Default is "." (the current working directory). This defines where
             your experiment should built it's directory tree for all of the
             various files.
-        use_SQL : bool, optional
-            Default is False. If True, a ``ESMDatabase`` instance is attached
-            under ``self.database``, and the component NAME, Version,
-            Lateral/Vertical Resolution and Timestep are entered into the
-            database. This is useful for finding experiments performed with the
-            same components.
-
 
         The following attributes are defined:
 
@@ -111,30 +99,17 @@ class Component(SimElement):
         """
         super(Component, self).__init__(parent_dir=parent_dir+"/"+expid)
 
+        print("Initializing a component")
         # Set up public attributes
         self.expid = expid
-
+        self.config = config
         # Set up filetypes with empty lists and generate directories
         self.files = {k: FileDict() for k in self._filetypes}
         for filetype in self._filetypes:
             self._register_directory(filetype)
-        # Set up resolution:
-        self._resolution(resolution)
+        
+        self.NAME = self.config.get('model')
+        self.VERSION = self.config.get('version')
+        self.TYPE = self.config.get('type')
 
-        # Keep an optional database of Components and simulations performed with them.
-        if use_SQL:
-            self.database = ESMDatabase()
-            # FIXME: The database needs to get fixed to handle a more generic
-            # resolution description...
-            self.database.register_component(self.NAME,
-                                             self.Version,
-                                            ) 
-
-
-    def _resolution(self, res_key=None):
-        """
-        Defines the resolution and generates the following attributes
-        """
-        for key, value in self.Resolutions[res_key].items():
-            setattr(self, key, value)
-
+    

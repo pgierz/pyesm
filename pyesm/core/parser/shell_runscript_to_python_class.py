@@ -9,20 +9,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 from ruamel.yaml import YAML, yaml_object
 
-from pyesm.core.dark_magic import dynamically_load_and_initialize_setup
+from pyesm.core.setup.setup_compute import SetUpCompute
 
 yaml = YAML()
-
-
-# NOTE: Not sure if this is needed, since we have os.environ available to us
-# anyway...
-@yaml_object(yaml)
-class LoadedEnv():
-    """
-    Loads the environment and stores all keys as attributes of a LoadedEnv instance
-    """
-    def __init__(self):
-        self.__dict__.update(dict(os.environ))
 
 
 def main():
@@ -38,20 +27,18 @@ def main():
     + Determine the setup that should be simulated
     + Dynamically loads and initializes this setup
     """
-    this_env = LoadedEnv()
-
-    yaml.dump(this_env, sys.stdout)
-
-    this_setup = os.environ.get('setup_name')
-    this_setup = dynamically_load_and_initialize_setup(this_setup, this_env.__dict__)
-    print('#'*80)
-    this_setup.echam._prepare_files_from_restart_in()
-    for thisfile in this_setup.echam.files['restart']:
-        print(thisfile)
-    this_setup.echam.files['restart'].digest()
-    #print('Calling all PREPARE steps')
-    #this_setup._call_phase('prepare')
-    print('done')
+    setup = SetUpCompute()    
+    print(80*"*")
+    setup.dump_yaml_to_stdout() 
+    
+    # print('#'*80)
+    # this_setup.echam._prepare_files_from_restart_in()
+    # for thisfile in this_setup.echam.files['restart']:
+    #    print(thisfile)
+    # this_setup.echam.files['restart'].digest()
+    # print('Calling all PREPARE steps')
+    # this_setup._call_phase('prepare')
+    # print('done')
 
 if __name__ == '__main__':
     main()

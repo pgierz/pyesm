@@ -44,16 +44,15 @@ namelist_changes:
 
                 radctl: 
                         co2vmr: 888999
-                        ch4vmr: -99.2
 
-resolutions:
+resolution: T63
+choose_resolution:
         T63:
-                res: "T63"
                 levels: "L47"
                 Timestep: 450
                 _nx: 192
                 _ny: 96
-                cores_per_nodes:
+                choose_cores_per_node:
                         24:
                                 nproca: 24
                                 nprocb: 18
@@ -61,17 +60,15 @@ resolutions:
                                 nproca: 24
                                 nprocb: 18                                
         T31:
-                res: "T31" #SRC @RES@
                 levels: "L19"
                 Timestep: 450
                 _nx: 96
                 _ny: 48
         T127:
-                "res": "T127"
-                "levels": "L47"
-                "Timestep": 200
-                "_nx": 384
-                "_ny": 192
+                levels: "L47"
+                Timestep: 200
+                _nx: 384
+                _ny: 192
 
 restart:
         frequency: 1

@@ -4,6 +4,7 @@ Classes to hold Compute and PostProcessing jobs for entire setups
 ----
 """
 import importlib
+from pkg_resources import resource_filename
 import os
 import sys
 
@@ -23,16 +24,43 @@ class SetUpCompute(object):
     """
     Container for a tightly-coupled simulation launcher
     """
-    def __init__(self, env):
+    def __init__(self):
+        env = os.environ
+        this_setup = None
+        self.components = {}
+        # Read a YAML if given
+        if 'read_yaml' in env:
+            print("Reading yaml...")
+            for yaml_file in env['read_yaml']:
+                self.personal_config.update(self.read_yaml(yaml_file))
+                this_setup = self.personal_config.get('setup_name', None)
+                print(self.personal_config)
+
+        # Read the environment
+        self.NAME = env.get('setup_name', this_setup)
+        if 'standalone' in self.NAME:
+            self.NAME = self.NAME.split("_standalone")[0]
+            for var in env:
+                if var.endswith(self.NAME+"_standalone") and var.split("_"+self.NAME+"_standalone")[0] not in env:
+                    env[var.split("_"+self.NAME+"_standalone")[0]] = env[var]
+                    del env[var]
+        
+        # Read Default YAML File for this setup (e.g. AWICM, ECHAM, usw)
+        self.config = self.read_yaml(self.NAME)
+        
+        # Everything the user put in a YAML file
+        if 'read_yaml' in env:
+            self.config.update(self.personal_config)
+        
+        for component in self.components.values():
+            self.update_component_from_env(component, env)
+
         self.expid = env.get("EXP_ID", "test")
 
         calendar = esm_calendar.Calendar(calendar_type=1)
 
         initial_date = env.get("INITIAL_DATE", None)
         final_date = env.get("FINAL_DATE", None)
-
-        initial_date = env.get("INITIAL_DATE_"+self.NAME, initial_date)
-        final_date = env.get("FINAL_DATE_"+self.NAME, final_date)
 
         initial_date = esm_calendar.Date(initial_date, calendar)
         final_date = esm_calendar.Date(final_date, calendar)
@@ -47,58 +75,85 @@ class SetUpCompute(object):
 
         self.calendar = EsmCalendar(initial_date, final_date, delta_date)
 
-        self.machine = Host(os.environ.get("machine_name"),
-                            batch_system=os.environ.get("batch_system", None))
-
+        # Computation requirments might be defined in the environment: 
+        self.machine = Host(env.get("machine_name"),
+                            batch_system=env.get("batch_system", None))
         self.total_tasks = 0
         self.job_time = self.compute_time = env.get("compute_time", None)
 
-        for component_key, component_value in self.components.items():
-            if issubclass(type(component_value), ComponentCompute):
-                this_component = component_value
-            elif isinstance(component_value, dict):
-                this_component = self._register_component(component_key, **component_value)
-            else:
-                error_message = "Give an initialized component, or a dict of arguments to construct one!"
-                raise TypeError(error_message)
-            setattr(self, this_component.NAME, this_component)
-            self.components[component_key] = this_component
+        self.preform_replacements()
 
-    def _register_component(self, component_name, **component_kwargs):
-        """ Dynamically import a ComponentCompute, and initialize a ComponentCompute
 
-        This dynamically imports ``component_name``'s ``ComponentCompute``
-        class, initializes it using ``component_args``, and registers it to the
-        SetUp as an attribute
+    def dump_yaml_to_stdout(self):
+        all_yamls = {}
+        all_yamls.update(self.config)
+        with open('yaml_dump_setup_configs.yaml', 'w') as yml:
+            yaml.dump(all_yamls, yml)
+        for component in self.components:
+            all_yamls['included_component_'+component] = self.components[component].config
+        yaml.dump(all_yamls, sys.stdout)
+        with open('yaml_dump_all_configs.yaml', 'w') as yml:
+            yaml.dump(all_yamls, yml)
 
-        Parameters
-        ----------
-        component_name : str
-            The name of the component, which will be used to load the module.
-        component_args : list or dict
-            A collection of arguments or keyword arguments to pass to the
-            component initializer.
+    def find_yaml_path(self, component_name):
+        if '/' in component_name:
+            return resource_filename('pyesm', component_name)
+        if component_name.endswith('.yaml'):
+            return resource_filename('pyesm', '/components/'+component_name)
+        else:
+            return resource_filename('pyesm', '/components/'+component_name+'.yaml')
 
-        Example
-        -------
+    def read_yaml(self, yaml_file, current_config={}):
+        print(80*"#")
+        print("Top of method read_yaml")
+        print(self.NAME, ":", current_config)
+        yaml_filepath = self.find_yaml_path(yaml_file)
+        with open(yaml_filepath) as yml:
+            current_config.update(yaml.load(yml))
+        print(80*"#")
+        print(current_config)
+        if 'further_reading' in current_config:
+            print("Reading further_reading chapter in %s", yaml_file)
+            for additional_yaml in current_config['further_reading']:
+                current_config['further_reading'].remove(additional_yaml)
+                self.read_yaml(additional_yaml, current_config)
+        if 'include_submodels' in current_config:
+            for submodel in current_config['include_submodels']:
+                current_config['include_submodels'].remove(submodel)
+                submodel_config = {}
+                this_component = ComponentCompute(
+                        config=self.read_yaml(
+                            submodel, 
+                            current_config=submodel_config
+                            )
+                        )
+                print(this_component)
+                print(dir(this_component))
+                self.components[this_component.NAME] = this_component
 
-        >>> my_setup = SetUpCompute._register_component(component_name="component",
-        ...                                             components_args={"arg1": "value1"})
+        return current_config
 
-        The following would happen in the background:
-        >>> from component import ComponentCompute
-        >>> example_component = ComponentCompute(arg1="value1")
+    def update_component_from_env(self, component, env):
+        for key, value in env.items():
+            if key.endswith("_"+component.NAME):
+                component.config[key] = value
 
-        Imagine we have a uninitialized setup object, called my_setup as above
 
-        >>> my_setup.Component = example_component
-        """
-        this_component = dynamically_load_and_initialize_component(component_name,
-                                                                   "compute",
-                                                                   calendar=self.calendar,
-                                                                   machine=self.machine,
-                                                                   **component_kwargs)
-        return this_component
+    def preform_replacements(self):
+        for key, value in self.config.items():
+            if key.startswith("choose_"):
+                chosen_key = key.replace("choose_", "")
+                if chosen_key in self.config:
+                    chosen_value = self.config[chosen_key]
+                    if chosen_value in value:
+                        for subkey, subvalue in self.config[key][chosen_value]:
+                            self.config.setdefault(subkey, subvalue)
+                    else:
+                        print("Warning: Unknown %s" % chosen_key)
+                else:
+                    print("Error")
+                    sys.exit(4)
+                self.config.remove(key)
 
     def _call_phase(self, Phase, SetUp_Last=True):
         """ Run a Phase for all registered components and any "top-level"

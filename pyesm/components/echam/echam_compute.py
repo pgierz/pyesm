@@ -15,24 +15,19 @@ from ruamel.yaml import YAML, yaml_object
 from pyesm.core.component.component_compute import ComponentCompute
 from pyesm.core.helpers import ComponentFile, ComponentNamelist
 from pyesm.components.echam import Echam
-from pyesm.components.echam.echam_dataset import r0007
 
 
 yaml = YAML()
 
 
 @yaml_object(yaml)
-class EchamCompute(Echam, ComponentCompute):
+class EchamCompute(ComponentCompute):
     """ A docstring. Please fill this out at least a little bit """
 
     def __init__(self,
-                 dataset=r0007,
-                 is_coupled=True,
                  *args, **kwargs):
         super(EchamCompute, self).__init__(*args, **kwargs)
-        self.is_coupled = is_coupled
         self.oceres = 'GR15'  # TODO: We need to get this from the environment...
-        self.dataset = dataset(self.res, self.levels, self.oceres)
         self.pool_dir = self.machine.pool_directories['pool']+'/ECHAM6/'
 
         self._default_prepare_steps = [

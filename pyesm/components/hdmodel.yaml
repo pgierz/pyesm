@@ -16,7 +16,7 @@ license_text: |
         Please make sure you have a licence to use echam. In case you are
         unsure, please contact redmine....
 
-pool_dir: @MACHINE_POOL_DIR@/HD
+pool_dir: "@MACHINE_POOL_DIR@/HD"
 
 executable: NONE
 

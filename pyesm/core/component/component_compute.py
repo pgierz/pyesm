@@ -21,9 +21,7 @@ defined
 
 ----
 """
-import csv
 import inspect
-import json
 import os
 import shutil
 
@@ -42,7 +40,7 @@ class ComponentCompute(Component):
     Contains elements of a Component related to actually running a simulation
     """
 
-    def __init__(self, calendar=None, machine=None, *Component_args, **Component_kwargs):
+    def __init__(self, *Component_args, **Component_kwargs):
         """ Initialization of a Compute part for a Component with phase
         instructions for prepare, work, and cleanup.
 
@@ -64,49 +62,21 @@ class ComponentCompute(Component):
 
         Attributes
         ----------
+        yaml_file : str
+            The path to the YAML configuration for this particular component.
         calendar : ESMCalendar
             The parameter passed in during initialization is attached to the object.
-        executable : str
-            The name of the executable
-        command : str
-            The full execution command, most often just ``./executable``
-        num_tasks : int
-            The number of tasks for this component
-        num_threads : int
-            The number of threads`
         """
         super(ComponentCompute, self).__init__(*Component_args, **Component_kwargs)
-        self.calendar = calendar or EsmCalendar()
-        self.machine = machine or Host()
-        # FIXME: This needs to point to whatever the module directory is...
 
         self._register_directory("work", use_name=False)
-        self._compute_requirements()
 
-        self._default_prepare_steps = ["read_from_dataset", "override_filetables_from_env", "copy_files_to_exp_tree"]
-
-    def _compute_requirements(self):
-        """
-        Defines compute requirements
-
-        The following attributes are set here:
-
-        Attributes
-        ----------
-        executable : str
-            The name of the executable
-        command : str
-            The full execution command, most often just ``./executable``
-        num_tasks : int
-            The number of tasks for this component
-        num_threads : int
-            The number of threads`
-        """
-        self.EXECUTEABLE = None
-        self.COMMAND = None
-        self.NUM_TASKS = None
-        # NOTE: I don't know if this is really needed.
-        self.NUM_THREADS = None
+        
+        self._default_prepare_steps = [
+                "read_from_dataset",
+                "override_filetables_from_env",
+                "copy_files_to_exp_tree",
+                ]
 
     def prepare(self, steps=None):
         """
