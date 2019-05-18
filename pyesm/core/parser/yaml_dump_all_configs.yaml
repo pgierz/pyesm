@@ -1,205 +1,199 @@
+# ------------ YAML DUMP START: SETUP -------------------operating_system:
+  linux: centos
+batch_system: slurm
+cores_per_node: 888
+partition: mpp
 hostnames:
   login: ollie[01]
   compute: prod-[0-9]{3}
   mini: mini
+jobtype: compute
+pool_directories:
+  pool: /work/ollie/pool
+  projects: /work/ollie/projects
+logical_cpus_per_core: 2
 nodetypes:
 - login
 - compute
 - fat
 - mini
 
-batch_system: slurm
-operating_system:
-  linux: centos
-compute_partition: mpp
-post_partition: smp
-cores:
-  compute: 36
+threads_per_core: 1
+# ------------ YAML DUMP START: jsbach -------------------# ECHAM YAML DEFAULT CONFIGURATION FILE
 
-cpus:
-  compute: 2
+model: jsbach
+repository: https://gitlab.dkrz.de/modular_esm/echam6
+domain: vegetation
 
-pool_directories:
-  pool: /work/ollie/pool
-  projects: /work/ollie/projects
-cores_per_node: 36
-included_component_jsbach:
-# ECHAM YAML DEFAULT CONFIGURATION FILE
+description: |
+  The JSBACH vegetation model, major version 3
+  (someone from Hamburg)
+  paper citation
 
-  model: jsbach
-  repository: https://gitlab.dkrz.de/modular_esm/echam6
-  domain: vegetation
+license_text: |
+  Please make sure you have a licence to use echam.In case you are
+  unsure, please contact redmine....
 
-  description: |
-    The JSBACH vegetation model, major version 3
-    (someone from Hamburg)
-    paper citation
-
-  license_text: |
-    Please make sure you have a licence to use echam.In case you are
-    unsure, please contact redmine....
-
-  directories:
-    MODEL_DIR: /DUMMY_NEEDS_TO_BE_SET_IN_SCRIPT/
+directories:
+  MODEL_DIR: /DUMMY_NEEDS_TO_BE_SET_IN_SCRIPT/
 
 
-  pool_dir: '@MACHINE_POOL_DIR@/JSBACH/'
+pool_dir: '@MACHINE_POOL_DIR@/JSBACH/'
 
-  dynamic_vegetations:
-    true:
-      DYNVEG: _dynveg
-    false:
-      DYNVEG: _no_dynveg
+dynamic_vegetations:
+  true:
+    DYNVEG: _dynveg
+  false:
+    DYNVEG: _no_dynveg
 
-  executable: NONE #component model of echam, internally coupled
+executable: NONE #component model of echam, internally coupled
 
-  versions:
-    3.20:
-      repo_tag: 6.304p1
-      dataset: r0010
-      forcings:
-        lctlib: '@MODEL_DIR@/echam-6.3.04p1/lctlib_nlct21.def'
-  scenarios:
-    PI-CTRL:
-      forcings:
-        jsbach: jsbach
-        a_nd_file: a_nd_file
-        lightning: lightning
-        popdens: popdens
-        LU: LU_1850
-        Ndepo: Ndepo_1850
-        LU_trans: LU_trans
+versions:
+  3.20:
+    repo_tag: 6.304p1
+    dataset: r0010
+    forcings:
+      lctlib: '@MODEL_DIR@/echam-6.3.04p1/lctlib_nlct21.def'
+scenarios:
+  PI-CTRL:
+    forcings:
+      jsbach: jsbach
+      a_nd_file: a_nd_file
+      lightning: lightning
+      popdens: popdens
+      LU: LU_1850
+      Ndepo: Ndepo_1850
+      LU_trans: LU_trans
 
-  forcings_in_workdir:
-    jsbach: jsbach.nc
-    lctlib: lctlib_nclt21.def
-    cover_fract: cover_fract.@YEAR@.nc
-    a_nd_file: a_nd_file.nc
-    lightning: lightning.nc
-    popdens: population_density.nc
-    LU: landuse_harvest.@YEAR@.nc
-    Ndepo: Ndepo.@YEAR@.nc
-    LU_trans: landuseTransitions.@YEAR@.nc
-  LCTLIBDEF_jsbach: /esm-master/echam-6.3.04p1//lctlib_nlct21.def
-included_component_echam:
-# ECHAM YAML DEFAULT CONFIGURATION FILE
+forcings_in_workdir:
+  jsbach: jsbach.nc
+  lctlib: lctlib_nclt21.def
+  cover_fract: cover_fract.@YEAR@.nc
+  a_nd_file: a_nd_file.nc
+  lightning: lightning.nc
+  popdens: population_density.nc
+  LU: landuse_harvest.@YEAR@.nc
+  Ndepo: Ndepo.@YEAR@.nc
+  LU_trans: landuseTransitions.@YEAR@.nc
+LCTLIBDEF_jsbach: /esm-master/echam-6.3.04p1//lctlib_nlct21.def
+# ------------ YAML DUMP START: echam -------------------# ECHAM YAML DEFAULT CONFIGURATION FILE
 
-  model: echam
-  repository: https://gitlab.dkrz.de/modular_esm/echam6
-  type: atmosphere
+model: echam
+repository: https://gitlab.dkrz.de/modular_esm/echam6
+type: atmosphere
 
-  description: |
-    The ECHAM atmosphere model, major version 6
-    (someone from Hamburg)
-    paper citation
+description: |
+  The ECHAM atmosphere model, major version 6
+  (someone from Hamburg)
+  paper citation
 
-  license_text: |
-    Please make sure you have a licence to use echam.In case you are
-    unsure, please contact redmine....
+license_text: |
+  Please make sure you have a licence to use echam.In case you are
+  unsure, please contact redmine....
 
-  pool_dir: '@MACHINE_POOL_DIR@/ECHAM6'
+pool_dir: '@MACHINE_POOL_DIR@/ECHAM6'
 
-  executable: echam6
-  version: 6.304p1
+executable: echam6
+version: 6.304p1
 
-  versions:
-    6.304p1:
-      repo_tag: 6.304p1
-      dataset: r0007
+versions:
+  6.304p1:
+    repo_tag: 6.304p1
+    dataset: r0007
 
-  INI_PARENT_DATE: 22941231
-  INI_PARENT_EXP_ID: khw0030
+INI_PARENT_DATE: 22941231
+INI_PARENT_EXP_ID: khw0030
 
-  INPUT_DIR: '@POOL_DIR@/ECHAM6/input/@DATASET@'
-  INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@INI_PARENT_EXP_ID@/restart/echam6'
+INPUT_DIR: '@POOL_DIR@/ECHAM6/input/@DATASET@'
+INI_RESTART_DIR: '@POOL_DIR@/MPIESM/restart/dev/@INI_PARENT_EXP_ID@/restart/echam6'
 
 
-  namelist_changes:
-    namelist.echam:
-      runctl:
-        out_expname: '@EXPID@'
-        dt_start: '@START_DATE@'
-        dt_stop: '@END_DATE@'
-        dt_resume: '@START_DATE@'
+namelist_changes:
+  namelist.echam:
+    runctl:
+      out_expname: '@EXPID@'
+      dt_start: '@START_DATE@'
+      dt_stop: '@END_DATE@'
+      dt_resume: '@START_DATE@'
 
-      radctl:
-        co2vmr: 888999
+    radctl:
+      co2vmr: 888999
 
-  resolution: T63
-  choose_resolution:
-    T63:
-      levels: L47
-      Timestep: 450
-      _nx: 192
-      _ny: 96
-      choose_cores_per_node:
-        24:
-          nproca: 24
-          nprocb: 18
-        36:
-          nproca: 24
-          nprocb: 18
-    T31:
-      levels: L19
-      Timestep: 450
-      _nx: 96
-      _ny: 48
-    T127:
-      levels: L47
-      Timestep: 200
-      _nx: 384
-      _ny: 192
+resolution: T63
+choose_resolution:
+  T63:
+    levels: L47
+    Timestep: 450
+    _nx: 192
+    _ny: 96
+    choose_cores_per_node:
+      24:
+        nproca: 24
+        nprocb: 18
+      36:
+        nproca: 24
+        nprocb: 18
+  T31:
+    levels: L19
+    Timestep: 450
+    _nx: 96
+    _ny: 48
+  T127:
+    levels: L47
+    Timestep: 200
+    _nx: 384
+    _ny: 192
 
-  restart:
-    frequency: 1
-    unit: months
+restart:
+  frequency: 1
+  unit: months
 
-  scenarios:
-    always:
-      inputs:
-        cldoptprops: cldoptprops
-        janspec: janspec
-        jansurf: jansurf
-        rrtmglw: rrtmglw
-        rrtmgsw: rrtmgsw
-        tslclim: tslclim
-        vgrtclim: vgratclim
-        vltclim: vltclim
+scenarios:
+  always:
+    inputs:
+      cldoptprops: cldoptprops
+      janspec: janspec
+      jansurf: jansurf
+      rrtmglw: rrtmglw
+      rrtmgsw: rrtmgsw
+      tslclim: tslclim
+      vgrtclim: vgratclim
+      vltclim: vltclim
 
-    PI-CTRL:
-      forcings:
-        sst: pisst
-        sic: pisic
-        aerocoarse: piaerocoarse
-        aerofin: piaerofin
-        aerofarir: piaerofarir
-        ozone: piozone
+  PI-CTRL:
+    forcings:
+      sst: pisst
+      sic: pisic
+      aerocoarse: piaerocoarse
+      aerofin: piaerofin
+      aerofarir: piaerofarir
+      ozone: piozone
 
-  ADJ_INPUT_DIR: '@INPUT_DIR@/@RES@'
+ADJ_INPUT_DIR: '@INPUT_DIR@/@RES@'
 
-  couplings:
-    fesom:
-      ADJ_INPUT_DIR: '@MESH_DIR@/tarfiles@RES@/input/echam6'
-      remove_forcings:
-      - sst
-      - sic
+couplings:
+  fesom:
+    ADJ_INPUT_DIR: '@MESH_DIR@/tarfiles@RES@/input/echam6'
+    remove_forcings:
+    - sst
+    - sic
 
-  inputs_in_workdir:
-    cldoptprops: /ECHAM6_CldOptProps.nc
-    janspec: unit.23
-    jansurf: unit.24
-    rrtmglw: rrtmg_lw.nc
-    rrtmgsw: rrtmg_sw.nc
-    tslclim: unit.92
-    vgratclim: unit.91
-    vltclim: unit.90
+inputs_in_workdir:
+  cldoptprops: /ECHAM6_CldOptProps.nc
+  janspec: unit.23
+  jansurf: unit.24
+  rrtmglw: rrtmg_lw.nc
+  rrtmgsw: rrtmg_sw.nc
+  tslclim: unit.92
+  vgratclim: unit.91
+  vltclim: unit.90
 
-  forcings_in_workdir:
-    sic: unit.96
-    sst: unit.20
-    aerocoarse: aero_coarse_@YEAR@.nc
-    aerofin: aero_fine_@YEAR@.nc
-    aerofarir: aero_farir_@YEAR@.nc
-    ozone: ozon@YEAR@
-  RESTART_echam: '12'
-  SCENARIO_echam: PI-CTRL
+forcings_in_workdir:
+  sic: unit.96
+  sst: unit.20
+  aerocoarse: aero_coarse_@YEAR@.nc
+  aerofin: aero_fine_@YEAR@.nc
+  aerofarir: aero_farir_@YEAR@.nc
+  ozone: ozon@YEAR@
+RESTART_echam: '12'
+SCENARIO_echam: PI-CTRL

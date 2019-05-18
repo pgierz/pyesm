@@ -1,25 +1,25 @@
+operating_system:
+  linux: centos
+batch_system: slurm
+cores_per_node: 1
+cpus:
+  compute: 2
+
+compute_partition: mpp
 hostnames:
   login: ollie[01]
   compute: prod-[0-9]{3}
   mini: mini
+pool_directories:
+  pool: /work/ollie/pool
+  projects: /work/ollie/projects
+post_partition: smp
+cores:
+  compute: 36
+
 nodetypes:
 - login
 - compute
 - fat
 - mini
 
-batch_system: slurm
-operating_system:
-  linux: centos
-compute_partition: mpp
-post_partition: smp
-cores:
-  compute: 36
-
-cpus:
-  compute: 2
-
-pool_directories:
-  pool: /work/ollie/pool
-  projects: /work/ollie/projects
-cores_per_node: 36

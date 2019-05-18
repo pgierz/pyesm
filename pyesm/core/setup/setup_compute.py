@@ -63,6 +63,7 @@ class SetUpCompute(object):
         for key, value in self.machine_config.items():
             self.config.setdefault(key, value)
 
+
         # Everything the user put in a YAML file
         if 'read_yaml' in env:
             self.config.update(self.personal_config)
@@ -108,13 +109,18 @@ class SetUpCompute(object):
     def dump_yaml_to_stdout(self):
         all_yamls = {}
         all_yamls.update(self.config)
-        with open('yaml_dump_setup_configs.yaml', 'w') as yml:
-            yaml.dump(all_yamls, yml)
-        for component in self.components:
-            all_yamls['included_component_'+component] = self.components[component].config
+        print("# ------------ YAML DUMP START: SETUP -------------------")
         yaml.dump(all_yamls, sys.stdout)
         with open('yaml_dump_all_configs.yaml', 'w') as yml:
+            yml.write("# ------------ YAML DUMP START: SETUP -------------------")
             yaml.dump(all_yamls, yml)
+        for component in self.components:
+            all_yamls = self.components[component].config
+            print(" ------------ YAML DUMP START: %s -------------------" % component)
+            yaml.dump(all_yamls, sys.stdout)
+            with open('yaml_dump_all_configs.yaml', 'a') as yml:
+                yml.write("# ------------ YAML DUMP START: %s -------------------" % component)
+                yaml.dump(all_yamls, yml)
 
     def find_yaml_path(self, component_name):
         if '/' in component_name:
@@ -158,9 +164,15 @@ class SetUpCompute(object):
                         current_config=submodel_config
                         )
                     )
-                print(this_component)
-                print(dir(this_component))
                 self.components[this_component.NAME] = this_component
+                logging.debug(self.components)
+                progenitor = self.components[current_config['model']]  # progenitor is opposite of heir ;-)
+                # If the progenitor doesn't have any heirs yet, make an empty
+                # list to keep them:
+                if not hasattr(progenitor, 'heirs'):
+                    setattr(progenitor, 'heirs', []) 
+                # Add the new component's name to the list of heirs
+                progenitor.heirs.append(this_component.NAME)
             del current_config['include_submodels']
 
         return current_config
@@ -170,13 +182,33 @@ class SetUpCompute(object):
             if key.endswith("_"+component.NAME):
                 component.config[key] = value
 
+    def resolve_yaml_choice(self, key, config_to_get_key, config_to_replace_in):
+        print("Determining choice for: %s" % key)
+        value = config_to_replace_in['choose_'+key]
+        if key in config_to_get_key:
+            chosen_value = config_to_get_key[key]
+            if chosen_value in value:
+                print("Check passed for equivalence of:")
+                print(chosen_value, value)
+                for subkey, subvalue in value[chosen_value].items():
+                    config_to_replace_in.setdefault(subkey, subvalue)
+            else:
+                print("Warning: Unknown value %s selected for %s" % (chosen_value, key))
+        else:
+            print("%s not in config_to_get_key for %s, sorry" % (key, self.NAME))
+            del config_to_replace_in["choose_"+key]
+            return key
+        del config_to_replace_in["choose_"+key]
+        return None
 
     # TODO: This needs refactoring for clarity, because I don't understand what
     # the fuck Dirk and I wrote...
     def preform_replacements(self):
         undefined_choices = []
-        all_keys = self.config.keys()
-        # while any(key.startswith("choose_") for key in self.config.keys()):
+        resolve_first = ['jobtype']
+        for resolve in resolve_first:
+            if 'choose_'+resolve in self.config:
+                undefined_choices.append(self.resolve_yaml_choice(resolve, self.config, self.config))
         while True: 
             found_key = False
             for key, value in self.config.items():
@@ -184,28 +216,11 @@ class SetUpCompute(object):
                     found_key = True
                     break
             if found_key:
-                print("Checking key %s" % key)
                 chosen_key = key.replace("choose_", "")
-                print("Determining choice for: %s" % chosen_key)
-                if chosen_key in self.config:
-                    chosen_value = self.config[chosen_key]
-                    if chosen_value in value:
-                        print("Check passed for equivalence of:")
-                        print(chosen_value, value)
-                        print("Checking if config[%s] contains %s" % (key, chosen_value))
-                        print(self.config[key])
-                        print(self.config[key][chosen_value])
-                        for subkey, subvalue in self.config[key][chosen_value].items():
-                            self.config.setdefault(subkey, subvalue)
-                    else:
-                        print("Warning: Unknown value %s selected for %s" % (chosen_value, chosen_key))
-                else:
-                    print(key, value, chosen_key)
-                    undefined_choices.append(key)
-                del self.config[key]
+                undefined_choices.append(self.resolve_yaml_choice(chosen_key, self.config, self.config))
             else:
                 break
-        if undefined_choices:
+        if undefined_choices and not all(elem is None for elem in undefined_choices):
             # Check the host config for possible entries
             print("There were undefined choices:")
             print(undefined_choices)

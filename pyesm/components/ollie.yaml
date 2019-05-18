@@ -16,26 +16,26 @@
 "operating_system": 
         "linux": "centos"
 
-compute_partition: mpp
+jobtype: compute
 
-post_partition: smp
+choose_jobtype:
+        post:
+                partition: smp
+        compute: 
+                partition: mpp
 
-choose_compute_partition: 
+choose_partition: 
         "mpp":
                 cores_per_node: 36
-
-choose_post_partition:
         "smp":
                 cores_per_node: 1
 
+logical_cpus_per_core: 2
 
-"cores":
-        "compute": 36
+threads_per_core: 1
 
-"cpus":
-        "compute": 2
+pool_directories:
+        pool: "/work/ollie/pool"
+        projects: "/work/ollie/projects"
 
-"pool_directories":
-        "pool": "/work/ollie/pool"
-        "projects": "/work/ollie/projects"
-
+cores_per_node: 888
